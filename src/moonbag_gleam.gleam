@@ -5,6 +5,8 @@ import lustre
 import lustre/element.{type Element}
 import lustre/element/html
 import lustre/event
+import models.{type GameState, type Msg, DoNothing}
+import views
 
 // MAIN ------------------------------------------------------------------------
 
@@ -20,24 +22,16 @@ pub fn main() {
 /// The `Model` is the state of our entire application.
 ///
 type Model =
-  Int
+  GameState
 
 /// The `init` function gets called when we first start our app. It sets the
 /// initial state of the app.
 ///
 fn init(_) -> Model {
-  0
+  models.init_gamestate()
 }
 
 // UPDATE ----------------------------------------------------------------------
-
-/// The `Msg` type describes all the ways the outside world can talk to our app.
-/// That includes user input, network requests, and any other external events.
-///
-type Msg {
-  UserClickedIncrement
-  UserClickedDecrement
-}
 
 /// The `update` function is called every time we receive a message from the
 /// outside world. We get the message and the current state of the app, and we
@@ -45,8 +39,7 @@ type Msg {
 ///
 fn update(model: Model, msg: Msg) -> Model {
   case msg {
-    UserClickedIncrement -> model + 1
-    UserClickedDecrement -> model - 1
+    DoNothing -> model
   }
 }
 
@@ -56,11 +49,5 @@ fn update(model: Model, msg: Msg) -> Model {
 /// state of our application and renders it as an `Element`
 ///
 fn view(model: Model) -> Element(Msg) {
-  let count = int.to_string(model)
-
-  html.div([], [
-    html.button([event.on_click(UserClickedDecrement)], [html.text("-")]),
-    html.p([], [html.text("Count: "), html.text(count)]),
-    html.button([event.on_click(UserClickedIncrement)], [html.text("+")]),
-  ])
+  html.div([], [views.game_state_view(model)])
 }

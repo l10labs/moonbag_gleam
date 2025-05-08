@@ -403,22 +403,30 @@ function reverse_and_prepend(loop$prefix, loop$suffix) {
 function reverse(list4) {
   return reverse_and_prepend(list4, toList([]));
 }
+function first(list4) {
+  if (list4.hasLength(0)) {
+    return new Error(void 0);
+  } else {
+    let first$1 = list4.head;
+    return new Ok(first$1);
+  }
+}
 function append_loop(loop$first, loop$second) {
   while (true) {
-    let first = loop$first;
+    let first2 = loop$first;
     let second = loop$second;
-    if (first.hasLength(0)) {
+    if (first2.hasLength(0)) {
       return second;
     } else {
-      let first$1 = first.head;
-      let rest$1 = first.tail;
+      let first$1 = first2.head;
+      let rest$1 = first2.tail;
       loop$first = rest$1;
       loop$second = prepend(first$1, second);
     }
   }
 }
-function append(first, second) {
-  return append_loop(reverse(first), second);
+function append(first2, second) {
+  return append_loop(reverse(first2), second);
 }
 function fold(loop$list, loop$initial, loop$fun) {
   while (true) {
@@ -752,6 +760,40 @@ function sort(list4, compare4) {
     );
     return merge_all(sequences$1, new Ascending(), compare4);
   }
+}
+function shuffle_pair_unwrap_loop(loop$list, loop$acc) {
+  while (true) {
+    let list4 = loop$list;
+    let acc = loop$acc;
+    if (list4.hasLength(0)) {
+      return acc;
+    } else {
+      let elem_pair = list4.head;
+      let enumerable = list4.tail;
+      loop$list = enumerable;
+      loop$acc = prepend(elem_pair[1], acc);
+    }
+  }
+}
+function do_shuffle_by_pair_indexes(list_of_pairs) {
+  return sort(
+    list_of_pairs,
+    (a_pair, b_pair) => {
+      return compare(a_pair[0], b_pair[0]);
+    }
+  );
+}
+function shuffle(list4) {
+  let _pipe = list4;
+  let _pipe$1 = fold(
+    _pipe,
+    toList([]),
+    (acc, a) => {
+      return prepend([random_uniform(), a], acc);
+    }
+  );
+  let _pipe$2 = do_shuffle_by_pair_indexes(_pipe$1);
+  return shuffle_pair_unwrap_loop(_pipe$2, toList([]));
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/string.mjs
@@ -1519,6 +1561,13 @@ var trim_start_regex = /* @__PURE__ */ new RegExp(
   `^[${unicode_whitespaces}]*`
 );
 var trim_end_regex = /* @__PURE__ */ new RegExp(`[${unicode_whitespaces}]*$`);
+function random_uniform() {
+  const random_uniform_result = Math.random();
+  if (random_uniform_result === 1) {
+    return random_uniform();
+  }
+  return random_uniform_result;
+}
 function new_map() {
   return Dict.new();
 }
@@ -1531,6 +1580,21 @@ function map_get(map4, key) {
 }
 function map_insert(key, value, map4) {
   return map4.set(key, value);
+}
+
+// build/dev/javascript/gleam_stdlib/gleam/float.mjs
+function compare(a, b) {
+  let $ = a === b;
+  if ($) {
+    return new Eq();
+  } else {
+    let $1 = a < b;
+    if ($1) {
+      return new Lt();
+    } else {
+      return new Gt();
+    }
+  }
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/dynamic/decode.mjs
@@ -1549,11 +1613,6 @@ function run(data, decoder) {
   } else {
     return new Error(errors);
   }
-}
-function success(data) {
-  return new Decoder((_) => {
-    return [data, toList([])];
-  });
 }
 function map3(decoder, transformer) {
   return new Decoder(
@@ -1750,24 +1809,15 @@ function attribute(name, value) {
 }
 var property_kind = 1;
 var event_kind = 2;
-function event(name, handler, include, prevent_default, stop_propagation, immediate2, limit) {
-  return new Event2(
-    event_kind,
-    name,
-    handler,
-    include,
-    prevent_default,
-    stop_propagation,
-    immediate2,
-    limit
-  );
-}
 var debounce_kind = 1;
 var throttle_kind = 2;
 
 // build/dev/javascript/lustre/lustre/attribute.mjs
 function attribute2(name, value) {
   return attribute(name, value);
+}
+function class$(name) {
+  return attribute2("class", name);
 }
 
 // build/dev/javascript/lustre/lustre/effect.mjs
@@ -1894,7 +1944,7 @@ function matches(path, candidates) {
   }
 }
 var separator_event = "\f";
-function event2(path, event4) {
+function event(path, event4) {
   return do_to_string(path, toList([separator_event, event4]));
 }
 
@@ -3622,7 +3672,7 @@ function tick(events) {
   );
 }
 function do_remove_event(handlers, path, name) {
-  return remove(handlers, event2(path, name));
+  return remove(handlers, event(path, name));
 }
 function remove_event(events, path, name) {
   let handlers = do_remove_event(events.handlers, path, name);
@@ -3674,7 +3724,7 @@ function has_dispatched_events(events, path) {
 function do_add_event(handlers, mapper, path, name, handler) {
   return insert3(
     handlers,
-    event2(path, name),
+    event(path, name),
     map3(handler, identity2(mapper))
   );
 }
@@ -3910,9 +3960,6 @@ function div(attrs, children) {
 function p(attrs, children) {
   return element2("p", attrs, children);
 }
-function button(attrs, children) {
-  return element2("button", attrs, children);
-}
 
 // build/dev/javascript/lustre/lustre/runtime/server/runtime.mjs
 var EffectDispatchedMessage = class extends CustomType {
@@ -4040,72 +4087,156 @@ function start3(app, selector, start_args) {
   );
 }
 
-// build/dev/javascript/lustre/lustre/event.mjs
-function is_immediate_event(name) {
-  if (name === "input") {
-    return true;
-  } else if (name === "change") {
-    return true;
-  } else if (name === "focus") {
-    return true;
-  } else if (name === "focusin") {
-    return true;
-  } else if (name === "focusout") {
-    return true;
-  } else if (name === "blur") {
-    return true;
-  } else if (name === "select") {
-    return true;
+// build/dev/javascript/moonbag_gleam/models.mjs
+var GameState = class extends CustomType {
+  constructor(player_health, points, cheddah, milestone, orb_bag_in, orb_bag_out) {
+    super();
+    this.player_health = player_health;
+    this.points = points;
+    this.cheddah = cheddah;
+    this.milestone = milestone;
+    this.orb_bag_in = orb_bag_in;
+    this.orb_bag_out = orb_bag_out;
+  }
+};
+var Point = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
+var Bomb = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
+var Empty2 = class extends CustomType {
+};
+function orb_to_string(orb) {
+  if (orb instanceof Point) {
+    let i = orb[0];
+    return concat2(toList(["Point Orb of (", to_string(i), ")"]));
+  } else if (orb instanceof Bomb) {
+    let i = orb[0];
+    return concat2(toList(["Bomb Orb of (", to_string(i), ")"]));
   } else {
-    return false;
+    return "Empty";
   }
 }
-function on(name, handler) {
-  return event(
-    name,
-    handler,
-    empty_list,
-    false,
-    false,
-    is_immediate_event(name),
-    new NoLimit(0)
+function init_orb_bag() {
+  let orb_bag_in = toList([
+    new Point(1),
+    new Point(1),
+    new Point(1),
+    new Point(1),
+    new Point(2),
+    new Point(2),
+    new Point(2),
+    new Point(2),
+    new Point(3),
+    new Point(3),
+    new Bomb(1),
+    new Bomb(1),
+    new Bomb(1),
+    new Bomb(2),
+    new Bomb(2)
+  ]);
+  return orb_bag_in;
+}
+function init_gamestate() {
+  let player_health = 0;
+  let points = 0;
+  let cheddah = 0;
+  let milestone = 10;
+  let _block;
+  let _pipe = init_orb_bag();
+  _block = shuffle(_pipe);
+  let orb_bag_in = _block;
+  let orb_bag_out = toList([]);
+  return new GameState(
+    player_health,
+    points,
+    cheddah,
+    milestone,
+    orb_bag_in,
+    orb_bag_out
   );
 }
-function on_click(msg) {
-  return on("click", success(msg));
-}
 
-// build/dev/javascript/moonbag_gleam/moonbag_gleam.mjs
-var UserClickedIncrement = class extends CustomType {
-};
-var UserClickedDecrement = class extends CustomType {
-};
-function init(_) {
-  return 0;
+// build/dev/javascript/moonbag_gleam/views.mjs
+function orb_view(orb) {
+  let _block;
+  let _pipe = orb;
+  _block = orb_to_string(_pipe);
+  let orb_text = _block;
+  return div(toList([]), toList([text3(orb_text)]));
 }
-function update2(model, msg) {
-  if (msg instanceof UserClickedIncrement) {
-    return model + 1;
+function next_orb_pull_view(orb_bag) {
+  let _block;
+  let _pipe = orb_bag;
+  _block = first(_pipe);
+  let result = _block;
+  let _block$1;
+  if (!result.isOk()) {
+    _block$1 = new Empty2();
   } else {
-    return model - 1;
+    let orb2 = result[0];
+    _block$1 = orb2;
   }
+  let orb = _block$1;
+  let _pipe$1 = orb;
+  return orb_view(_pipe$1);
 }
-function view(model) {
-  let count = to_string(model);
+function game_state_view(game_state) {
+  let _block;
+  let _pipe = game_state.player_health;
+  _block = to_string(_pipe);
+  let health = _block;
+  let _block$1;
+  let _pipe$1 = game_state.points;
+  _block$1 = to_string(_pipe$1);
+  let points = _block$1;
+  let _block$2;
+  let _pipe$2 = game_state.cheddah;
+  _block$2 = to_string(_pipe$2);
+  let cheddah = _block$2;
+  let _block$3;
+  let _pipe$3 = game_state.milestone;
+  _block$3 = to_string(_pipe$3);
+  let milestone = _block$3;
+  let _block$4;
+  let _pipe$4 = game_state.orb_bag_in;
+  _block$4 = next_orb_pull_view(_pipe$4);
+  let orb_pull_view = _block$4;
   return div(
-    toList([]),
     toList([
-      button(
-        toList([on_click(new UserClickedDecrement())]),
-        toList([text3("-")])
-      ),
-      p(toList([]), toList([text3("Count: "), text3(count)])),
-      button(
-        toList([on_click(new UserClickedIncrement())]),
-        toList([text3("+")])
+      class$("flex flex-col gaps-2 justify-center items-center")
+    ]),
+    toList([
+      p(toList([]), toList([text3("health: " + health)])),
+      p(toList([]), toList([text3("points: " + points)])),
+      p(toList([]), toList([text3("cheddah: " + cheddah)])),
+      p(toList([]), toList([text3("milestone: " + milestone)])),
+      div(
+        toList([]),
+        toList([text3("next orb pull: "), orb_pull_view])
       )
     ])
   );
+}
+
+// build/dev/javascript/moonbag_gleam/moonbag_gleam.mjs
+function init(_) {
+  return init_gamestate();
+}
+function update2(model, msg) {
+  {
+    return model;
+  }
+}
+function view(model) {
+  return div(toList([]), toList([game_state_view(model)]));
 }
 function main() {
   let app = simple(init, update2, view);
@@ -4114,7 +4245,7 @@ function main() {
     throw makeError(
       "let_assert",
       "moonbag_gleam",
-      13,
+      15,
       "main",
       "Pattern match failed, no pattern matched the value.",
       { value: $ }
