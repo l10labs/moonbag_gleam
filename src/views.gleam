@@ -3,7 +3,24 @@ import gleam/list
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
+import lustre/event
 import models.{type GameState, type Msg, type Orb, Empty}
+
+pub fn home_screen_view() -> Element(Msg) {
+  html.div(
+    [attribute.class("flex flex-col gaps-2 justify-center items-center")],
+    [
+      html.text("Moon Bag"),
+      html.button(
+        [
+          attribute.class("border border-black rounded"),
+          event.on_click(models.UserStartGame),
+        ],
+        [html.text("Start Game")],
+      ),
+    ],
+  )
+}
 
 pub fn game_state_view(game_state: GameState) -> Element(Msg) {
   let health = game_state.player_health |> int.to_string

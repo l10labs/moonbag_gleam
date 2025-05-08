@@ -69,4 +69,5 @@ pub fn init_orb_bag() -> List(Orb) {
 
 pub type Msg {
   DoNothing
+  UserStartGame
 }

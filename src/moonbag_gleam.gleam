@@ -1,11 +1,8 @@
 // IMPORTS ---------------------------------------------------------------------
 
-import gleam/int
 import lustre
 import lustre/element.{type Element}
-import lustre/element/html
-import lustre/event
-import models.{type GameState, type Msg, DoNothing}
+import models.{type GameState, type Msg, DoNothing, UserStartGame}
 import views
 
 // MAIN ------------------------------------------------------------------------
@@ -21,14 +18,17 @@ pub fn main() {
 
 /// The `Model` is the state of our entire application.
 ///
-type Model =
-  GameState
+type Model {
+  HomeScreen
+  GameScreen(GameState)
+}
 
 /// The `init` function gets called when we first start our app. It sets the
 /// initial state of the app.
 ///
 fn init(_) -> Model {
-  models.init_gamestate()
+  // models.init_gamestate()
+  HomeScreen
 }
 
 // UPDATE ----------------------------------------------------------------------
@@ -40,6 +40,7 @@ fn init(_) -> Model {
 fn update(model: Model, msg: Msg) -> Model {
   case msg {
     DoNothing -> model
+    UserStartGame -> GameScreen(models.init_gamestate())
   }
 }
 
@@ -49,5 +50,8 @@ fn update(model: Model, msg: Msg) -> Model {
 /// state of our application and renders it as an `Element`
 ///
 fn view(model: Model) -> Element(Msg) {
-  html.div([], [views.game_state_view(model)])
+  case model {
+    HomeScreen -> views.home_screen_view()
+    GameScreen(game_state) -> views.game_state_view(game_state)
+  }
 }
