@@ -79,24 +79,27 @@ pub fn pull_orb(game_state: GameState) -> GameState {
   let orb_bag_in = new_bag_in
   let orb_bag_out = game_state.orb_bag_out |> list.append([first_orb])
 
-  let #(health, points, cheddah) = case first_orb {
-    Bomb(damage) -> #(
-      game_state.health - damage,
-      game_state.points,
-      game_state.cheddah,
-    )
-    Empty -> #(game_state.health, game_state.points, game_state.cheddah)
-    Point(amount) -> #(
-      game_state.health,
-      game_state.points + amount,
-      game_state.cheddah + amount,
-    )
+  let #(health, points) = case first_orb {
+    Bomb(damage) -> #(game_state.health - damage, game_state.points)
+    Empty -> #(game_state.health, game_state.points)
+    Point(amount) -> #(game_state.health, game_state.points + amount)
   }
 
-  GameState(..game_state, health:, points:, cheddah:, orb_bag_in:, orb_bag_out:)
+  GameState(..game_state, health:, points:, orb_bag_in:, orb_bag_out:)
+}
+
+pub fn next_level(game_state: GameState) -> GameState {
+  let init_game_state = init_gamestate()
+  GameState(
+    ..init_game_state,
+    level: game_state.level + 1,
+    cheddah: game_state.points,
+    milestone: init_game_state.milestone + game_state.milestone,
+  )
 }
 
 pub type Msg {
   PlayerStartGame
   PlayerPullOrb
+  PlayerNextLevel
 }

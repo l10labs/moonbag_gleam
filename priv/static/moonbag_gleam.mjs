@@ -4138,6 +4138,8 @@ var PlayerStartGame = class extends CustomType {
 };
 var PlayerPullOrb = class extends CustomType {
 };
+var PlayerNextLevel = class extends CustomType {
+};
 function orb_to_string(orb) {
   if (orb instanceof Point) {
     let i = orb[0];
@@ -4218,34 +4220,38 @@ function pull_orb(game_state) {
   let _block$2;
   if (first_orb instanceof Bomb) {
     let damage = first_orb[0];
-    _block$2 = [
-      game_state.health - damage,
-      game_state.points,
-      game_state.cheddah
-    ];
+    _block$2 = [game_state.health - damage, game_state.points];
   } else if (first_orb instanceof Empty2) {
-    _block$2 = [game_state.health, game_state.points, game_state.cheddah];
+    _block$2 = [game_state.health, game_state.points];
   } else {
     let amount = first_orb[0];
-    _block$2 = [
-      game_state.health,
-      game_state.points + amount,
-      game_state.cheddah + amount
-    ];
+    _block$2 = [game_state.health, game_state.points + amount];
   }
   let $2 = _block$2;
   let health = $2[0];
   let points = $2[1];
-  let cheddah = $2[2];
   let _record = game_state;
   return new GameState(
     _record.level,
     health,
     points,
-    cheddah,
+    _record.cheddah,
     _record.milestone,
     orb_bag_in,
     orb_bag_out
+  );
+}
+function next_level(game_state) {
+  let init_game_state = init_gamestate();
+  let _record = init_game_state;
+  return new GameState(
+    game_state.level + 1,
+    _record.health,
+    _record.points,
+    game_state.points,
+    init_game_state.milestone + game_state.milestone,
+    _record.orb_bag_in,
+    _record.orb_bag_out
   );
 }
 
@@ -4298,6 +4304,23 @@ function home_screen_view() {
           on_click(new PlayerStartGame())
         ]),
         toList([text3("Start Game")])
+      )
+    ])
+  );
+}
+function win_screen_view(_) {
+  return div(
+    toList([
+      class$("flex flex-col gaps-2 justify-center items-center")
+    ]),
+    toList([
+      text3("Passed Level {X}!"),
+      button(
+        toList([
+          class$("border border-black rounded"),
+          on_click(new PlayerNextLevel())
+        ]),
+        toList([text3("Next Level")])
       )
     ])
   );
@@ -4393,6 +4416,9 @@ function update2(model, msg) {
   } else if (model instanceof GameScreen && msg instanceof PlayerPullOrb) {
     let game_state = model[0];
     return new GameScreen(pull_orb(game_state));
+  } else if (model instanceof GameScreen && msg instanceof PlayerNextLevel) {
+    let game_state = model[0];
+    return new GameScreen(next_level(game_state));
   } else if (model instanceof HomeScreen) {
     return new HomeScreen();
   } else {
@@ -4404,7 +4430,12 @@ function view(model) {
     return home_screen_view();
   } else {
     let game_state = model[0];
-    return game_state_view(game_state);
+    let $ = game_state.points >= game_state.milestone;
+    if (!$) {
+      return game_state_view(game_state);
+    } else {
+      return win_screen_view(game_state);
+    }
   }
 }
 function main() {
@@ -4414,7 +4445,7 @@ function main() {
     throw makeError(
       "let_assert",
       "moonbag_gleam",
-      12,
+      14,
       "main",
       "Pattern match failed, no pattern matched the value.",
       { value: $ }

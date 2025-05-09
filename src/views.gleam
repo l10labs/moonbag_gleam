@@ -5,7 +5,8 @@ import lustre/element.{type Element}
 import lustre/element/html
 import lustre/event
 import models.{
-  type GameState, type Msg, type Orb, Empty, PlayerPullOrb, PlayerStartGame,
+  type GameState, type Msg, type Orb, Empty, PlayerNextLevel, PlayerPullOrb,
+  PlayerStartGame,
 }
 
 pub fn home_screen_view() -> Element(Msg) {
@@ -50,6 +51,22 @@ pub fn game_state_view(game_state: GameState) -> Element(Msg) {
         [html.text("Pull Orb From Bag")],
       ),
       // html.div([attribute.class("flex flex-col")], orb_bag),
+    ],
+  )
+}
+
+pub fn win_screen_view(_game_state: GameState) -> Element(Msg) {
+  html.div(
+    [attribute.class("flex flex-col gaps-2 justify-center items-center")],
+    [
+      html.text("Passed Level {X}!"),
+      html.button(
+        [
+          attribute.class("border border-black rounded"),
+          event.on_click(PlayerNextLevel),
+        ],
+        [html.text("Next Level")],
+      ),
     ],
   )
 }

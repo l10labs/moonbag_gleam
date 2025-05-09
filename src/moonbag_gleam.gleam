@@ -2,7 +2,9 @@
 
 import lustre
 import lustre/element.{type Element}
-import models.{type GameState, type Msg, PlayerPullOrb, PlayerStartGame}
+import models.{
+  type GameState, type Msg, PlayerNextLevel, PlayerPullOrb, PlayerStartGame,
+}
 import views
 
 // MAIN ------------------------------------------------------------------------
@@ -42,6 +44,9 @@ fn update(model: Model, msg: Msg) -> Model {
     HomeScreen, PlayerStartGame -> GameScreen(models.init_gamestate())
     GameScreen(game_state), PlayerPullOrb ->
       GameScreen(models.pull_orb(game_state))
+    GameScreen(game_state), PlayerNextLevel -> {
+      GameScreen(models.next_level(game_state))
+    }
     HomeScreen, _ -> HomeScreen
     GameScreen(_), _ -> HomeScreen
   }
@@ -55,6 +60,11 @@ fn update(model: Model, msg: Msg) -> Model {
 fn view(model: Model) -> Element(Msg) {
   case model {
     HomeScreen -> views.home_screen_view()
-    GameScreen(game_state) -> views.game_state_view(game_state)
+    GameScreen(game_state) -> {
+      case game_state.points >= game_state.milestone {
+        False -> views.game_state_view(game_state)
+        True -> views.win_screen_view(game_state)
+      }
+    }
   }
 }
