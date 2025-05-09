@@ -1,5 +1,6 @@
 import gleam/int
 import gleam/list
+import gleam/string
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
@@ -55,17 +56,36 @@ pub fn game_state_view(game_state: GameState) -> Element(Msg) {
   )
 }
 
-pub fn win_screen_view(_game_state: GameState) -> Element(Msg) {
+pub fn win_screen_view(game_state: GameState) -> Element(Msg) {
   html.div(
     [attribute.class("flex flex-col gaps-2 justify-center items-center")],
     [
-      html.text("Passed Level {X}!"),
+      html.p([], [html.text("You Won!")]),
+      html.p([], [
+        html.text(string.concat(["Level ", game_state.level |> int.to_string])),
+      ]),
       html.button(
         [
           attribute.class("border border-black rounded"),
           event.on_click(PlayerNextLevel),
         ],
         [html.text("Next Level")],
+      ),
+    ],
+  )
+}
+
+pub fn lose_screen_view() -> Element(Msg) {
+  html.div(
+    [attribute.class("flex flex-col gaps-2 justify-center items-center")],
+    [
+      html.text("You Lost!"),
+      html.button(
+        [
+          attribute.class("border border-black rounded"),
+          event.on_click(PlayerStartGame),
+        ],
+        [html.text("Restart?")],
       ),
     ],
   )

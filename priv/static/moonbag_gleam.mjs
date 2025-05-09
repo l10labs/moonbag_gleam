@@ -4308,19 +4308,52 @@ function home_screen_view() {
     ])
   );
 }
-function win_screen_view(_) {
+function win_screen_view(game_state) {
   return div(
     toList([
       class$("flex flex-col gaps-2 justify-center items-center")
     ]),
     toList([
-      text3("Passed Level {X}!"),
+      p(toList([]), toList([text3("You Won!")])),
+      p(
+        toList([]),
+        toList([
+          text3(
+            concat2(
+              toList([
+                "Level ",
+                (() => {
+                  let _pipe = game_state.level;
+                  return to_string(_pipe);
+                })()
+              ])
+            )
+          )
+        ])
+      ),
       button(
         toList([
           class$("border border-black rounded"),
           on_click(new PlayerNextLevel())
         ]),
         toList([text3("Next Level")])
+      )
+    ])
+  );
+}
+function lose_screen_view() {
+  return div(
+    toList([
+      class$("flex flex-col gaps-2 justify-center items-center")
+    ]),
+    toList([
+      text3("You Lost!"),
+      button(
+        toList([
+          class$("border border-black rounded"),
+          on_click(new PlayerStartGame())
+        ]),
+        toList([text3("Restart?")])
       )
     ])
   );
@@ -4399,34 +4432,34 @@ function game_state_view(game_state) {
 }
 
 // build/dev/javascript/moonbag_gleam/moonbag_gleam.mjs
-var HomeScreen = class extends CustomType {
+var HomePage = class extends CustomType {
 };
-var GameScreen = class extends CustomType {
+var GamePage = class extends CustomType {
   constructor(x0) {
     super();
     this[0] = x0;
   }
 };
 function init(_) {
-  return new HomeScreen();
+  return new HomePage();
 }
 function update2(model, msg) {
-  if (model instanceof HomeScreen && msg instanceof PlayerStartGame) {
-    return new GameScreen(init_gamestate());
-  } else if (model instanceof GameScreen && msg instanceof PlayerPullOrb) {
+  if (model instanceof HomePage && msg instanceof PlayerStartGame) {
+    return new GamePage(init_gamestate());
+  } else if (model instanceof GamePage && msg instanceof PlayerPullOrb) {
     let game_state = model[0];
-    return new GameScreen(pull_orb(game_state));
-  } else if (model instanceof GameScreen && msg instanceof PlayerNextLevel) {
+    return new GamePage(pull_orb(game_state));
+  } else if (model instanceof GamePage && msg instanceof PlayerNextLevel) {
     let game_state = model[0];
-    return new GameScreen(next_level(game_state));
-  } else if (model instanceof HomeScreen) {
-    return new HomeScreen();
+    return new GamePage(next_level(game_state));
+  } else if (model instanceof GamePage && msg instanceof PlayerStartGame) {
+    return new GamePage(init_gamestate());
   } else {
-    return new HomeScreen();
+    return new HomePage();
   }
 }
 function view(model) {
-  if (model instanceof HomeScreen) {
+  if (model instanceof HomePage) {
     return home_screen_view();
   } else {
     let game_state = model[0];
@@ -4437,7 +4470,7 @@ function view(model) {
       return win_screen_view(game_state);
     } else if ($1 <= 0) {
       let h = $1;
-      return home_screen_view();
+      return lose_screen_view();
     } else {
       return game_state_view(game_state);
     }
