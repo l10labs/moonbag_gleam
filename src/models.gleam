@@ -49,25 +49,25 @@ pub fn init_gamestate() -> GameState {
 }
 
 pub fn init_orb_bag() -> List(Orb) {
-  let orb_bag_in = [
-    Point(1),
-    Point(1),
-    Point(1),
-    Point(1),
-    Point(2),
-    Point(2),
-    Point(2),
-    Point(2),
-    Point(3),
-    Point(3),
-    Bomb(1),
-    Bomb(1),
-    Bomb(1),
-    Bomb(2),
-    Bomb(2),
-  ]
+  let init_orb_bag =
+    [
+      build_orb(Point, 1, times: 4),
+      build_orb(Point, 2, times: 4),
+      build_orb(Point, 3, times: 2),
+      build_orb(Bomb, 1, times: 3),
+      build_orb(Bomb, 2, times: 2),
+    ]
+    |> list.fold([], list.append)
 
-  orb_bag_in
+  init_orb_bag
+}
+
+pub fn build_orb(
+  orb_type: fn(Int) -> Orb,
+  value: Int,
+  times quantity: Int,
+) -> List(Orb) {
+  list.repeat(orb_type(value), quantity)
 }
 
 pub fn pull_orb(game_state: GameState) -> GameState {

@@ -1534,6 +1534,24 @@ function sort(list4, compare4) {
     return merge_all(sequences$1, new Ascending(), compare4);
   }
 }
+function repeat_loop(loop$item, loop$times, loop$acc) {
+  while (true) {
+    let item = loop$item;
+    let times = loop$times;
+    let acc = loop$acc;
+    let $ = times <= 0;
+    if ($) {
+      return acc;
+    } else {
+      loop$item = item;
+      loop$times = times - 1;
+      loop$acc = prepend(item, acc);
+    }
+  }
+}
+function repeat(a, times) {
+  return repeat_loop(a, times, toList([]));
+}
 function shuffle_pair_unwrap_loop(loop$list, loop$acc) {
   while (true) {
     let list4 = loop$list;
@@ -4151,25 +4169,31 @@ function orb_to_string(orb) {
     return "Empty";
   }
 }
+function build_orb(orb_type, value, quantity) {
+  return repeat(orb_type(value), quantity);
+}
 function init_orb_bag() {
-  let orb_bag_in = toList([
-    new Point(1),
-    new Point(1),
-    new Point(1),
-    new Point(1),
-    new Point(2),
-    new Point(2),
-    new Point(2),
-    new Point(2),
-    new Point(3),
-    new Point(3),
-    new Bomb(1),
-    new Bomb(1),
-    new Bomb(1),
-    new Bomb(2),
-    new Bomb(2)
+  let _block;
+  let _pipe = toList([
+    build_orb((var0) => {
+      return new Point(var0);
+    }, 1, 4),
+    build_orb((var0) => {
+      return new Point(var0);
+    }, 2, 4),
+    build_orb((var0) => {
+      return new Point(var0);
+    }, 3, 2),
+    build_orb((var0) => {
+      return new Bomb(var0);
+    }, 1, 3),
+    build_orb((var0) => {
+      return new Bomb(var0);
+    }, 2, 2)
   ]);
-  return orb_bag_in;
+  _block = fold(_pipe, toList([]), append);
+  let init_orb_bag$1 = _block;
+  return init_orb_bag$1;
 }
 function init_gamestate() {
   let level = 1;
