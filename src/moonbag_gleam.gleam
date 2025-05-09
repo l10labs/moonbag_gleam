@@ -61,9 +61,12 @@ fn view(model: Model) -> Element(Msg) {
   case model {
     HomeScreen -> views.home_screen_view()
     GameScreen(game_state) -> {
-      case game_state.points >= game_state.milestone {
-        False -> views.game_state_view(game_state)
-        True -> views.win_screen_view(game_state)
+      case game_state.points, game_state.health {
+        p, _ if p >= game_state.milestone -> {
+          views.win_screen_view(game_state)
+        }
+        _, h if h <= 0 -> views.home_screen_view()
+        _, _ -> views.game_state_view(game_state)
       }
     }
   }

@@ -4430,11 +4430,16 @@ function view(model) {
     return home_screen_view();
   } else {
     let game_state = model[0];
-    let $ = game_state.points >= game_state.milestone;
-    if (!$) {
-      return game_state_view(game_state);
-    } else {
+    let $ = game_state.points;
+    let $1 = game_state.health;
+    if ($ >= game_state.milestone) {
+      let p2 = $;
       return win_screen_view(game_state);
+    } else if ($1 <= 0) {
+      let h = $1;
+      return home_screen_view();
+    } else {
+      return game_state_view(game_state);
     }
   }
 }
