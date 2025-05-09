@@ -4,7 +4,9 @@ import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
 import lustre/event
-import models.{type GameState, type Msg, type Orb, Empty}
+import models.{
+  type GameState, type Msg, type Orb, Empty, PlayerPullOrb, PlayerStartGame,
+}
 
 pub fn home_screen_view() -> Element(Msg) {
   html.div(
@@ -14,7 +16,7 @@ pub fn home_screen_view() -> Element(Msg) {
       html.button(
         [
           attribute.class("border border-black rounded"),
-          event.on_click(models.UserStartGame),
+          event.on_click(PlayerStartGame),
         ],
         [html.text("Start Game")],
       ),
@@ -23,7 +25,8 @@ pub fn home_screen_view() -> Element(Msg) {
 }
 
 pub fn game_state_view(game_state: GameState) -> Element(Msg) {
-  let health = game_state.player_health |> int.to_string
+  let level = game_state.level |> int.to_string
+  let health = game_state.health |> int.to_string
   let points = game_state.points |> int.to_string
   let cheddah = game_state.cheddah |> int.to_string
   let milestone = game_state.milestone |> int.to_string
@@ -33,11 +36,19 @@ pub fn game_state_view(game_state: GameState) -> Element(Msg) {
   html.div(
     [attribute.class("flex flex-col gaps-2 justify-center items-center")],
     [
+      html.p([], [html.text("level: " <> level)]),
       html.p([], [html.text("health: " <> health)]),
       html.p([], [html.text("points: " <> points)]),
       html.p([], [html.text("cheddah: " <> cheddah)]),
       html.p([], [html.text("milestone: " <> milestone)]),
       html.div([], [html.text("next orb pull: "), orb_pull_view]),
+      html.button(
+        [
+          attribute.class("border border-black rounded"),
+          event.on_click(PlayerPullOrb),
+        ],
+        [html.text("Pull Orb From Bag")],
+      ),
       // html.div([attribute.class("flex flex-col")], orb_bag),
     ],
   )

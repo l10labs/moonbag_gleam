@@ -2,7 +2,7 @@
 
 import lustre
 import lustre/element.{type Element}
-import models.{type GameState, type Msg, DoNothing, UserStartGame}
+import models.{type GameState, type Msg, PlayerPullOrb, PlayerStartGame}
 import views
 
 // MAIN ------------------------------------------------------------------------
@@ -38,9 +38,12 @@ fn init(_) -> Model {
 /// use those to calculate the new state.
 ///
 fn update(model: Model, msg: Msg) -> Model {
-  case msg {
-    DoNothing -> model
-    UserStartGame -> GameScreen(models.init_gamestate())
+  case model, msg {
+    HomeScreen, PlayerStartGame -> GameScreen(models.init_gamestate())
+    GameScreen(game_state), PlayerPullOrb ->
+      GameScreen(models.pull_orb(game_state))
+    HomeScreen, _ -> HomeScreen
+    GameScreen(_), _ -> HomeScreen
   }
 }
 

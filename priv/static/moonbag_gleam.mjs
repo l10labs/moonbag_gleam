@@ -4109,9 +4109,10 @@ function start3(app, selector, start_args) {
 
 // build/dev/javascript/moonbag_gleam/models.mjs
 var GameState = class extends CustomType {
-  constructor(player_health, points, cheddah, milestone, orb_bag_in, orb_bag_out) {
+  constructor(level, health, points, cheddah, milestone, orb_bag_in, orb_bag_out) {
     super();
-    this.player_health = player_health;
+    this.level = level;
+    this.health = health;
     this.points = points;
     this.cheddah = cheddah;
     this.milestone = milestone;
@@ -4133,9 +4134,9 @@ var Bomb = class extends CustomType {
 };
 var Empty2 = class extends CustomType {
 };
-var DoNothing = class extends CustomType {
+var PlayerStartGame = class extends CustomType {
 };
-var UserStartGame = class extends CustomType {
+var PlayerPullOrb = class extends CustomType {
 };
 function orb_to_string(orb) {
   if (orb instanceof Point) {
@@ -4169,7 +4170,8 @@ function init_orb_bag() {
   return orb_bag_in;
 }
 function init_gamestate() {
-  let player_health = 0;
+  let level = 1;
+  let health = 5;
   let points = 0;
   let cheddah = 0;
   let milestone = 10;
@@ -4179,10 +4181,69 @@ function init_gamestate() {
   let orb_bag_in = _block;
   let orb_bag_out = toList([]);
   return new GameState(
-    player_health,
+    level,
+    health,
     points,
     cheddah,
     milestone,
+    orb_bag_in,
+    orb_bag_out
+  );
+}
+function pull_orb(game_state) {
+  let _block;
+  let $1 = game_state.orb_bag_in;
+  if ($1.hasLength(0)) {
+    throw makeError(
+      "panic",
+      "models",
+      75,
+      "pull_orb",
+      "`panic` expression evaluated.",
+      {}
+    );
+  } else {
+    let first2 = $1.head;
+    let rest = $1.tail;
+    _block = [first2, rest];
+  }
+  let $ = _block;
+  let first_orb = $[0];
+  let new_bag_in = $[1];
+  let orb_bag_in = new_bag_in;
+  let _block$1;
+  let _pipe = game_state.orb_bag_out;
+  _block$1 = append(_pipe, toList([first_orb]));
+  let orb_bag_out = _block$1;
+  let _block$2;
+  if (first_orb instanceof Bomb) {
+    let damage = first_orb[0];
+    _block$2 = [
+      game_state.health - damage,
+      game_state.points,
+      game_state.cheddah
+    ];
+  } else if (first_orb instanceof Empty2) {
+    _block$2 = [game_state.health, game_state.points, game_state.cheddah];
+  } else {
+    let amount = first_orb[0];
+    _block$2 = [
+      game_state.health,
+      game_state.points + amount,
+      game_state.cheddah + amount
+    ];
+  }
+  let $2 = _block$2;
+  let health = $2[0];
+  let points = $2[1];
+  let cheddah = $2[2];
+  let _record = game_state;
+  return new GameState(
+    _record.level,
+    health,
+    points,
+    cheddah,
+    _record.milestone,
     orb_bag_in,
     orb_bag_out
   );
@@ -4234,7 +4295,7 @@ function home_screen_view() {
       button(
         toList([
           class$("border border-black rounded"),
-          on_click(new UserStartGame())
+          on_click(new PlayerStartGame())
         ]),
         toList([text3("Start Game")])
       )
@@ -4266,30 +4327,35 @@ function next_orb_pull_view(orb_bag) {
 }
 function game_state_view(game_state) {
   let _block;
-  let _pipe = game_state.player_health;
+  let _pipe = game_state.level;
   _block = to_string(_pipe);
-  let health = _block;
+  let level = _block;
   let _block$1;
-  let _pipe$1 = game_state.points;
+  let _pipe$1 = game_state.health;
   _block$1 = to_string(_pipe$1);
-  let points = _block$1;
+  let health = _block$1;
   let _block$2;
-  let _pipe$2 = game_state.cheddah;
+  let _pipe$2 = game_state.points;
   _block$2 = to_string(_pipe$2);
-  let cheddah = _block$2;
+  let points = _block$2;
   let _block$3;
-  let _pipe$3 = game_state.milestone;
+  let _pipe$3 = game_state.cheddah;
   _block$3 = to_string(_pipe$3);
-  let milestone = _block$3;
+  let cheddah = _block$3;
   let _block$4;
-  let _pipe$4 = game_state.orb_bag_in;
-  _block$4 = next_orb_pull_view(_pipe$4);
-  let orb_pull_view = _block$4;
+  let _pipe$4 = game_state.milestone;
+  _block$4 = to_string(_pipe$4);
+  let milestone = _block$4;
+  let _block$5;
+  let _pipe$5 = game_state.orb_bag_in;
+  _block$5 = next_orb_pull_view(_pipe$5);
+  let orb_pull_view = _block$5;
   return div(
     toList([
       class$("flex flex-col gaps-2 justify-center items-center")
     ]),
     toList([
+      p(toList([]), toList([text3("level: " + level)])),
       p(toList([]), toList([text3("health: " + health)])),
       p(toList([]), toList([text3("points: " + points)])),
       p(toList([]), toList([text3("cheddah: " + cheddah)])),
@@ -4297,6 +4363,13 @@ function game_state_view(game_state) {
       div(
         toList([]),
         toList([text3("next orb pull: "), orb_pull_view])
+      ),
+      button(
+        toList([
+          class$("border border-black rounded"),
+          on_click(new PlayerPullOrb())
+        ]),
+        toList([text3("Pull Orb From Bag")])
       )
     ])
   );
@@ -4315,10 +4388,15 @@ function init(_) {
   return new HomeScreen();
 }
 function update2(model, msg) {
-  if (msg instanceof DoNothing) {
-    return model;
-  } else {
+  if (model instanceof HomeScreen && msg instanceof PlayerStartGame) {
     return new GameScreen(init_gamestate());
+  } else if (model instanceof GameScreen && msg instanceof PlayerPullOrb) {
+    let game_state = model[0];
+    return new GameScreen(pull_orb(game_state));
+  } else if (model instanceof HomeScreen) {
+    return new HomeScreen();
+  } else {
+    return new HomeScreen();
   }
 }
 function view(model) {
