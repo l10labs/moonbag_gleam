@@ -4010,6 +4010,9 @@ function div(attrs, children) {
 function p(attrs, children) {
   return element2("p", attrs, children);
 }
+function br(attrs) {
+  return element2("br", attrs, empty_list);
+}
 function span(attrs, children) {
   return element2("span", attrs, children);
 }
@@ -4337,100 +4340,108 @@ function home_screen_view() {
   return div(
     toList([
       class$(
-        "flex flex-col min-h-screen justify-center items-center bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 p-8 text-white antialiased"
+        "flex flex-col min-h-screen justify-center items-center bg-black text-gray-200 p-8 font-mono antialiased text-center"
       )
     ]),
     toList([
       h1(
         toList([
           class$(
-            "text-7xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-500 text-transparent bg-clip-text"
+            "text-5xl sm:text-7xl text-white font-medium tracking-widest mb-3"
           )
         ]),
-        toList([text3("Moon Bag")])
+        toList([text3("MOON BAG")])
       ),
       p(
         toList([
-          class$("text-xl text-slate-300 mb-12 text-center max-w-md")
+          class$(
+            "text-sm sm:text-base text-gray-400 mb-16 max-w-md tracking-wider"
+          )
         ]),
         toList([
           text3(
-            "Embark on a lunar adventure and fill your bag with cosmic treasures!"
+            "Anomalous signals detected. Prepare for resource extraction."
           )
         ])
       ),
       button(
         toList([
           class$(
-            "bg-pink-500 hover:bg-pink-600 text-white font-semibold text-lg py-4 px-10 rounded-lg shadow-xl transform transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-4 focus:ring-pink-300 focus:ring-opacity-50 active:bg-pink-700"
+            "border border-gray-600 hover:border-white text-gray-300 hover:text-white py-3 px-10 rounded-none text-lg tracking-wider uppercase transition-colors duration-300 ease-in-out focus:outline-none focus:ring-1 focus:ring-gray-500"
           ),
           on_click(new PlayerStartGame())
         ]),
-        toList([text3("\u{1F680} Start Adventure")])
+        toList([text3("Initiate Expedition")])
       ),
       footer(
-        toList([class$("absolute bottom-4 text-sm text-slate-500")]),
-        toList([text3("v0.1.0 - A Gleamy Game")])
+        toList([
+          class$(
+            "absolute bottom-6 text-xs text-gray-700 tracking-widest uppercase"
+          )
+        ]),
+        toList([text3("System v0.1.0")])
       )
     ])
   );
 }
-function stat_item(label, value, value_color_class) {
+function game_stat_item(label, value) {
   return div(
-    toList([class$("flex justify-between items-baseline sm:block")]),
+    toList([class$("flex justify-between items-baseline")]),
     toList([
       span(
-        toList([
-          class$(
-            "text-slate-300 mr-2 sm:mr-0 sm:block sm:text-sm sm:mb-1"
-          )
-        ]),
+        toList([class$("text-sm text-gray-400 tracking-wider")]),
         toList([text3(label + ":")])
       ),
       span(
-        toList([class$("font-semibold " + value_color_class)]),
+        toList([class$("text-base text-gray-100 font-medium")]),
         toList([text3(value)])
       )
     ])
   );
 }
-function stat_item_full_width(label, value, value_color_class) {
+function game_stat_item_full_width(label, value) {
   return div(
-    toList([class$("flex justify-between items-center mt-1")]),
+    toList([
+      class$(
+        "pt-3 border-t border-gray-800 flex justify-between items-baseline"
+      )
+    ]),
     toList([
       span(
-        toList([class$("text-slate-300 text-lg")]),
+        toList([class$("text-sm text-gray-400 tracking-wider")]),
         toList([text3(label + ":")])
       ),
       span(
-        toList([class$("font-bold text-xl " + value_color_class)]),
+        toList([class$("text-base text-gray-100 font-medium")]),
         toList([text3(value)])
       )
     ])
   );
 }
 function orb_view(orb) {
-  let _block;
-  let _pipe = orb;
-  _block = orb_to_string(_pipe);
-  let orb_text = _block;
-  return div(toList([]), toList([text3(orb_text)]));
+  return text3(
+    (() => {
+      let _pipe = orb;
+      return orb_to_string(_pipe);
+    })()
+  );
 }
 function next_orb_pull_view(orb_bag) {
-  let _block;
-  let _pipe = orb_bag;
-  _block = first(_pipe);
-  let result = _block;
-  let _block$1;
-  if (!result.isOk()) {
-    _block$1 = new Empty2();
+  let $ = first(orb_bag);
+  if ($.isOk()) {
+    let orb = $[0];
+    return div(
+      toList([
+        class$("text-xl text-white font-semibold tracking-wider")
+      ]),
+      toList([orb_view(orb)])
+    );
   } else {
-    let orb2 = result[0];
-    _block$1 = orb2;
+    return div(
+      toList([class$("text-lg text-gray-600 italic tracking-wider")]),
+      toList([text3("No Signal...")])
+    );
   }
-  let orb = _block$1;
-  let _pipe$1 = orb;
-  return orb_view(_pipe$1);
 }
 function game_state_view(game_state) {
   let _block;
@@ -4453,21 +4464,17 @@ function game_state_view(game_state) {
   let _pipe$4 = game_state.milestone;
   _block$4 = to_string(_pipe$4);
   let milestone_str = _block$4;
-  let _block$5;
-  let _pipe$5 = game_state.orb_bag_in;
-  _block$5 = next_orb_pull_view(_pipe$5);
-  let orb_pull_view_content = _block$5;
   return div(
     toList([
       class$(
-        "min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 text-white antialiased"
+        "min-h-screen bg-black text-gray-200 font-mono antialiased"
       )
     ]),
     toList([
       header(
         toList([
           class$(
-            "fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-md shadow-lg flex justify-between items-center px-4 sm:px-8 h-16 sm:h-20"
+            "fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800 flex justify-between items-center px-4 sm:px-6 h-16"
           )
         ]),
         toList([
@@ -4477,17 +4484,13 @@ function game_state_view(game_state) {
               span(
                 toList([
                   class$(
-                    "text-sm sm:text-base text-slate-400 uppercase tracking-wider"
+                    "text-xs text-gray-500 uppercase tracking-wider"
                   )
                 ]),
-                toList([text3("Level")])
+                toList([text3("Sector")])
               ),
               span(
-                toList([
-                  class$(
-                    "text-xl sm:text-2xl font-bold text-purple-300"
-                  )
-                ]),
+                toList([class$("text-lg text-gray-100 font-medium")]),
                 toList([text3(level_str)])
               )
             ])
@@ -4498,17 +4501,13 @@ function game_state_view(game_state) {
               span(
                 toList([
                   class$(
-                    "text-sm sm:text-base text-slate-400 uppercase tracking-wider"
+                    "text-xs text-gray-500 uppercase tracking-wider"
                   )
                 ]),
-                toList([text3("Cheddah")])
+                toList([text3("Credits")])
               ),
               span(
-                toList([
-                  class$(
-                    "text-xl sm:text-2xl font-bold text-sky-300"
-                  )
-                ]),
+                toList([class$("text-lg text-gray-100 font-medium")]),
                 toList([text3(cheddah_str)])
               )
             ])
@@ -4518,48 +4517,31 @@ function game_state_view(game_state) {
       main(
         toList([
           class$(
-            "flex flex-col items-center justify-start w-full px-4 sm:px-8 pb-8 pt-20 sm:pt-28"
+            "flex flex-col items-center justify-start w-full px-4 sm:px-6 pb-8 pt-24"
           )
         ]),
         toList([
           div(
             toList([
               class$(
-                "bg-slate-800/70 backdrop-blur-sm p-6 rounded-xl shadow-2xl w-full max-w-md mb-8"
+                "bg-gray-950/70 border border-gray-800 p-5 sm:p-6 rounded-none shadow-md w-full max-w-lg mb-8"
               )
             ]),
             toList([
               h2(
                 toList([
                   class$(
-                    "text-2xl sm:text-3xl font-bold text-center mb-6 text-pink-400 tracking-wide"
+                    "text-xl font-medium text-center mb-5 text-gray-300 tracking-wider uppercase"
                   )
                 ]),
-                toList([text3("Mission Vitals")])
+                toList([text3("System Diagnostics")])
               ),
               div(
+                toList([class$("space-y-3")]),
                 toList([
-                  class$(
-                    "grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-lg"
-                  )
-                ]),
-                toList([
-                  stat_item("Health", health_str, "text-green-400"),
-                  stat_item("Points", points_str, "text-yellow-300"),
-                  div(
-                    toList([
-                      class$(
-                        "sm:col-span-2 mt-3 pt-3 border-t border-slate-700"
-                      )
-                    ]),
-                    toList([
-                      stat_item_full_width(
-                        "Next Milestone",
-                        milestone_str,
-                        "text-teal-300"
-                      )
-                    ])
-                  )
+                  game_stat_item("Integrity", health_str),
+                  game_stat_item("Data Points", points_str),
+                  game_stat_item_full_width("Signal Target", milestone_str)
                 ])
               )
             ])
@@ -4567,34 +4549,29 @@ function game_state_view(game_state) {
           div(
             toList([
               class$(
-                "bg-slate-800/50 backdrop-blur-xs p-6 rounded-xl shadow-xl w-full max-w-md mb-8 text-center"
+                "bg-gray-950/70 border border-gray-800 p-5 sm:p-6 rounded-none shadow-md w-full max-w-lg mb-8 text-center"
               )
             ]),
             toList([
               p(
                 toList([
-                  class$("text-xl font-semibold text-slate-300 mb-3")
-                ]),
-                toList([text3("Next Orb in Bag:")])
-              ),
-              div(
-                toList([
                   class$(
-                    "text-2xl font-bold text-yellow-400 animate-pulse"
+                    "text-sm text-gray-500 uppercase tracking-wider mb-2"
                   )
                 ]),
-                toList([orb_pull_view_content])
-              )
+                toList([text3("Next Anomaly Signature:")])
+              ),
+              next_orb_pull_view(game_state.orb_bag_in)
             ])
           ),
           button(
             toList([
               class$(
-                "bg-pink-500 hover:bg-pink-600 text-white font-semibold text-lg py-3 px-8 rounded-lg shadow-xl transform transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-4 focus:ring-pink-300 focus:ring-opacity-50 active:bg-pink-700 w-full max-w-xs"
+                "bg-gray-800 hover:bg-gray-700 text-gray-100 py-3 px-8 rounded-none text-base sm:text-lg tracking-wider uppercase transition-colors duration-150 ease-in-out w-full max-w-sm focus:outline-none focus:ring-1 focus:ring-gray-500"
               ),
               on_click(new PlayerPullOrb())
             ]),
-            toList([text3("\u2728 Pull Orb")])
+            toList([text3("Extract Anomaly")])
           )
         ])
       )
@@ -4609,41 +4586,36 @@ function win_screen_view(game_state) {
   return div(
     toList([
       class$(
-        "flex flex-col min-h-screen justify-center items-center text-center p-8 bg-gradient-to-br from-slate-900 via-purple-800 to-teal-700 text-white antialiased"
+        "flex flex-col min-h-screen justify-center items-center bg-black text-gray-200 p-8 font-mono antialiased text-center"
       )
     ]),
     toList([
       h1(
         toList([
           class$(
-            "text-7xl sm:text-8xl font-extrabold tracking-tight mb-3 bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-500 text-transparent bg-clip-text"
+            "text-4xl sm:text-6xl text-white font-medium tracking-widest mb-4"
           )
         ]),
-        toList([text3("VICTORY!")])
+        toList([text3("OBJECTIVE COMPLETE")])
       ),
       p(
-        toList([class$("text-4xl mb-6 animate-bounce")]),
-        toList([text3("\u2728\u{1F680}\u2728")])
-      ),
-      p(
-        toList([class$("text-2xl text-slate-200 mb-10")]),
         toList([
-          text3("You've conquered Level "),
-          span(
-            toList([class$("font-bold text-yellow-300")]),
-            toList([text3(current_level)])
-          ),
-          text3("!")
+          class$("text-base text-gray-300 mb-12 tracking-wider")
+        ]),
+        toList([
+          text3("Sector " + current_level + " secured."),
+          br(toList([])),
+          text3("Awaiting further instructions.")
         ])
       ),
       button(
         toList([
           class$(
-            "bg-green-500 hover:bg-green-600 text-white font-semibold text-xl py-4 px-10 rounded-lg shadow-xl transform transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-opacity-50 active:bg-green-700"
+            "border-2 border-gray-300 hover:border-white hover:bg-white text-gray-100 hover:text-black py-3 px-10 rounded-none text-lg tracking-wider uppercase font-semibold transition-all duration-300 ease-in-out focus:outline-none focus:ring-1 focus:ring-white"
           ),
           on_click(new PlayerNextLevel())
         ]),
-        toList([text3("Next Mission")])
+        toList([text3("Proceed to Next Sector")])
       )
     ])
   );
@@ -4652,34 +4624,36 @@ function lose_screen_view() {
   return div(
     toList([
       class$(
-        "flex flex-col min-h-screen justify-center items-center text-center p-8 bg-gradient-to-br from-slate-900 via-red-900 to-rose-900 text-white antialiased"
+        "flex flex-col min-h-screen justify-center items-center bg-black text-gray-200 p-8 font-mono antialiased text-center"
       )
     ]),
     toList([
       h1(
         toList([
           class$(
-            "text-7xl sm:text-8xl font-extrabold tracking-tight mb-4 text-red-400 drop-shadow-md"
+            "text-4xl sm:text-6xl text-gray-500 font-medium tracking-widest mb-4"
           )
         ]),
-        toList([text3("MISSION FAILED")])
+        toList([text3("SYSTEM CRITICAL")])
       ),
       p(
-        toList([class$("text-xl text-slate-300 mb-10 max-w-md")]),
         toList([
-          text3(
-            "The cosmic void can be unforgiving. Don't lose hope, astronaut!"
-          )
+          class$("text-base text-gray-400 mb-12 tracking-wider")
+        ]),
+        toList([
+          text3("Integrity compromised. Signal lost."),
+          br(toList([])),
+          text3("Attempting system recalibration...")
         ])
       ),
       button(
         toList([
           class$(
-            "bg-pink-500 hover:bg-pink-600 text-white font-semibold text-xl py-4 px-10 rounded-lg shadow-xl transform transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-4 focus:ring-pink-300 focus:ring-opacity-50 active:bg-pink-700"
+            "border border-gray-700 hover:border-gray-400 text-gray-400 hover:text-gray-100 py-3 px-10 rounded-none text-lg tracking-wider uppercase transition-colors duration-300 ease-in-out focus:outline-none focus:ring-1 focus:ring-gray-600"
           ),
           on_click(new PlayerStartGame())
         ]),
-        toList([text3("\u{1F680} Try Again")])
+        toList([text3("Re-engage Protocol")])
       )
     ])
   );
