@@ -3989,11 +3989,29 @@ function fragment2(children) {
 function text3(content) {
   return text2(content);
 }
+function footer(attrs, children) {
+  return element2("footer", attrs, children);
+}
+function header(attrs, children) {
+  return element2("header", attrs, children);
+}
+function h1(attrs, children) {
+  return element2("h1", attrs, children);
+}
+function h2(attrs, children) {
+  return element2("h2", attrs, children);
+}
+function main(attrs, children) {
+  return element2("main", attrs, children);
+}
 function div(attrs, children) {
   return element2("div", attrs, children);
 }
 function p(attrs, children) {
   return element2("p", attrs, children);
+}
+function span(attrs, children) {
+  return element2("span", attrs, children);
 }
 function button(attrs, children) {
   return element2("button", attrs, children);
@@ -4318,66 +4336,75 @@ function on_click(msg) {
 function home_screen_view() {
   return div(
     toList([
-      class$("flex flex-col gaps-2 justify-center items-center")
-    ]),
-    toList([
-      text3("Moon Bag"),
-      button(
-        toList([
-          class$("border border-black rounded"),
-          on_click(new PlayerStartGame())
-        ]),
-        toList([text3("Start Game")])
+      class$(
+        "flex flex-col min-h-screen justify-center items-center bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 p-8 text-white antialiased"
       )
-    ])
-  );
-}
-function win_screen_view(game_state) {
-  return div(
-    toList([
-      class$("flex flex-col gaps-2 justify-center items-center")
     ]),
     toList([
-      p(toList([]), toList([text3("You Won!")])),
+      h1(
+        toList([
+          class$(
+            "text-7xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-500 text-transparent bg-clip-text"
+          )
+        ]),
+        toList([text3("Moon Bag")])
+      ),
       p(
-        toList([]),
+        toList([
+          class$("text-xl text-slate-300 mb-12 text-center max-w-md")
+        ]),
         toList([
           text3(
-            concat2(
-              toList([
-                "Level ",
-                (() => {
-                  let _pipe = game_state.level;
-                  return to_string(_pipe);
-                })()
-              ])
-            )
+            "Embark on a lunar adventure and fill your bag with cosmic treasures!"
           )
         ])
       ),
       button(
         toList([
-          class$("border border-black rounded"),
-          on_click(new PlayerNextLevel())
+          class$(
+            "bg-pink-500 hover:bg-pink-600 text-white font-semibold text-lg py-4 px-10 rounded-lg shadow-xl transform transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-4 focus:ring-pink-300 focus:ring-opacity-50 active:bg-pink-700"
+          ),
+          on_click(new PlayerStartGame())
         ]),
-        toList([text3("Next Level")])
+        toList([text3("\u{1F680} Start Adventure")])
+      ),
+      footer(
+        toList([class$("absolute bottom-4 text-sm text-slate-500")]),
+        toList([text3("v0.1.0 - A Gleamy Game")])
       )
     ])
   );
 }
-function lose_screen_view() {
+function stat_item(label, value, value_color_class) {
   return div(
+    toList([class$("flex justify-between items-baseline sm:block")]),
     toList([
-      class$("flex flex-col gaps-2 justify-center items-center")
-    ]),
-    toList([
-      text3("You Lost!"),
-      button(
+      span(
         toList([
-          class$("border border-black rounded"),
-          on_click(new PlayerStartGame())
+          class$(
+            "text-slate-300 mr-2 sm:mr-0 sm:block sm:text-sm sm:mb-1"
+          )
         ]),
-        toList([text3("Restart?")])
+        toList([text3(label + ":")])
+      ),
+      span(
+        toList([class$("font-semibold " + value_color_class)]),
+        toList([text3(value)])
+      )
+    ])
+  );
+}
+function stat_item_full_width(label, value, value_color_class) {
+  return div(
+    toList([class$("flex justify-between items-center mt-1")]),
+    toList([
+      span(
+        toList([class$("text-slate-300 text-lg")]),
+        toList([text3(label + ":")])
+      ),
+      span(
+        toList([class$("font-bold text-xl " + value_color_class)]),
+        toList([text3(value)])
       )
     ])
   );
@@ -4409,47 +4436,250 @@ function game_state_view(game_state) {
   let _block;
   let _pipe = game_state.level;
   _block = to_string(_pipe);
-  let level = _block;
+  let level_str = _block;
   let _block$1;
   let _pipe$1 = game_state.health;
   _block$1 = to_string(_pipe$1);
-  let health = _block$1;
+  let health_str = _block$1;
   let _block$2;
   let _pipe$2 = game_state.points;
   _block$2 = to_string(_pipe$2);
-  let points = _block$2;
+  let points_str = _block$2;
   let _block$3;
   let _pipe$3 = game_state.cheddah;
   _block$3 = to_string(_pipe$3);
-  let cheddah = _block$3;
+  let cheddah_str = _block$3;
   let _block$4;
   let _pipe$4 = game_state.milestone;
   _block$4 = to_string(_pipe$4);
-  let milestone = _block$4;
+  let milestone_str = _block$4;
   let _block$5;
   let _pipe$5 = game_state.orb_bag_in;
   _block$5 = next_orb_pull_view(_pipe$5);
-  let orb_pull_view = _block$5;
+  let orb_pull_view_content = _block$5;
   return div(
     toList([
-      class$("flex flex-col gaps-2 justify-center items-center")
+      class$(
+        "min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 text-white antialiased"
+      )
     ]),
     toList([
-      p(toList([]), toList([text3("level: " + level)])),
-      p(toList([]), toList([text3("health: " + health)])),
-      p(toList([]), toList([text3("points: " + points)])),
-      p(toList([]), toList([text3("cheddah: " + cheddah)])),
-      p(toList([]), toList([text3("milestone: " + milestone)])),
-      div(
-        toList([]),
-        toList([text3("next orb pull: "), orb_pull_view])
+      header(
+        toList([
+          class$(
+            "fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-md shadow-lg flex justify-between items-center px-4 sm:px-8 h-16 sm:h-20"
+          )
+        ]),
+        toList([
+          div(
+            toList([class$("flex items-baseline gap-2")]),
+            toList([
+              span(
+                toList([
+                  class$(
+                    "text-sm sm:text-base text-slate-400 uppercase tracking-wider"
+                  )
+                ]),
+                toList([text3("Level")])
+              ),
+              span(
+                toList([
+                  class$(
+                    "text-xl sm:text-2xl font-bold text-purple-300"
+                  )
+                ]),
+                toList([text3(level_str)])
+              )
+            ])
+          ),
+          div(
+            toList([class$("flex items-baseline gap-2")]),
+            toList([
+              span(
+                toList([
+                  class$(
+                    "text-sm sm:text-base text-slate-400 uppercase tracking-wider"
+                  )
+                ]),
+                toList([text3("Cheddah")])
+              ),
+              span(
+                toList([
+                  class$(
+                    "text-xl sm:text-2xl font-bold text-sky-300"
+                  )
+                ]),
+                toList([text3(cheddah_str)])
+              )
+            ])
+          )
+        ])
+      ),
+      main(
+        toList([
+          class$(
+            "flex flex-col items-center justify-start w-full px-4 sm:px-8 pb-8 pt-20 sm:pt-28"
+          )
+        ]),
+        toList([
+          div(
+            toList([
+              class$(
+                "bg-slate-800/70 backdrop-blur-sm p-6 rounded-xl shadow-2xl w-full max-w-md mb-8"
+              )
+            ]),
+            toList([
+              h2(
+                toList([
+                  class$(
+                    "text-2xl sm:text-3xl font-bold text-center mb-6 text-pink-400 tracking-wide"
+                  )
+                ]),
+                toList([text3("Mission Vitals")])
+              ),
+              div(
+                toList([
+                  class$(
+                    "grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-lg"
+                  )
+                ]),
+                toList([
+                  stat_item("Health", health_str, "text-green-400"),
+                  stat_item("Points", points_str, "text-yellow-300"),
+                  div(
+                    toList([
+                      class$(
+                        "sm:col-span-2 mt-3 pt-3 border-t border-slate-700"
+                      )
+                    ]),
+                    toList([
+                      stat_item_full_width(
+                        "Next Milestone",
+                        milestone_str,
+                        "text-teal-300"
+                      )
+                    ])
+                  )
+                ])
+              )
+            ])
+          ),
+          div(
+            toList([
+              class$(
+                "bg-slate-800/50 backdrop-blur-xs p-6 rounded-xl shadow-xl w-full max-w-md mb-8 text-center"
+              )
+            ]),
+            toList([
+              p(
+                toList([
+                  class$("text-xl font-semibold text-slate-300 mb-3")
+                ]),
+                toList([text3("Next Orb in Bag:")])
+              ),
+              div(
+                toList([
+                  class$(
+                    "text-2xl font-bold text-yellow-400 animate-pulse"
+                  )
+                ]),
+                toList([orb_pull_view_content])
+              )
+            ])
+          ),
+          button(
+            toList([
+              class$(
+                "bg-pink-500 hover:bg-pink-600 text-white font-semibold text-lg py-3 px-8 rounded-lg shadow-xl transform transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-4 focus:ring-pink-300 focus:ring-opacity-50 active:bg-pink-700 w-full max-w-xs"
+              ),
+              on_click(new PlayerPullOrb())
+            ]),
+            toList([text3("\u2728 Pull Orb")])
+          )
+        ])
+      )
+    ])
+  );
+}
+function win_screen_view(game_state) {
+  let _block;
+  let _pipe = game_state.level;
+  _block = to_string(_pipe);
+  let current_level = _block;
+  return div(
+    toList([
+      class$(
+        "flex flex-col min-h-screen justify-center items-center text-center p-8 bg-gradient-to-br from-slate-900 via-purple-800 to-teal-700 text-white antialiased"
+      )
+    ]),
+    toList([
+      h1(
+        toList([
+          class$(
+            "text-7xl sm:text-8xl font-extrabold tracking-tight mb-3 bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-500 text-transparent bg-clip-text"
+          )
+        ]),
+        toList([text3("VICTORY!")])
+      ),
+      p(
+        toList([class$("text-4xl mb-6 animate-bounce")]),
+        toList([text3("\u2728\u{1F680}\u2728")])
+      ),
+      p(
+        toList([class$("text-2xl text-slate-200 mb-10")]),
+        toList([
+          text3("You've conquered Level "),
+          span(
+            toList([class$("font-bold text-yellow-300")]),
+            toList([text3(current_level)])
+          ),
+          text3("!")
+        ])
       ),
       button(
         toList([
-          class$("border border-black rounded"),
-          on_click(new PlayerPullOrb())
+          class$(
+            "bg-green-500 hover:bg-green-600 text-white font-semibold text-xl py-4 px-10 rounded-lg shadow-xl transform transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-opacity-50 active:bg-green-700"
+          ),
+          on_click(new PlayerNextLevel())
         ]),
-        toList([text3("Pull Orb From Bag")])
+        toList([text3("Next Mission")])
+      )
+    ])
+  );
+}
+function lose_screen_view() {
+  return div(
+    toList([
+      class$(
+        "flex flex-col min-h-screen justify-center items-center text-center p-8 bg-gradient-to-br from-slate-900 via-red-900 to-rose-900 text-white antialiased"
+      )
+    ]),
+    toList([
+      h1(
+        toList([
+          class$(
+            "text-7xl sm:text-8xl font-extrabold tracking-tight mb-4 text-red-400 drop-shadow-md"
+          )
+        ]),
+        toList([text3("MISSION FAILED")])
+      ),
+      p(
+        toList([class$("text-xl text-slate-300 mb-10 max-w-md")]),
+        toList([
+          text3(
+            "The cosmic void can be unforgiving. Don't lose hope, astronaut!"
+          )
+        ])
+      ),
+      button(
+        toList([
+          class$(
+            "bg-pink-500 hover:bg-pink-600 text-white font-semibold text-xl py-4 px-10 rounded-lg shadow-xl transform transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-4 focus:ring-pink-300 focus:ring-opacity-50 active:bg-pink-700"
+          ),
+          on_click(new PlayerStartGame())
+        ]),
+        toList([text3("\u{1F680} Try Again")])
       )
     ])
   );
@@ -4500,7 +4730,7 @@ function view(model) {
     }
   }
 }
-function main() {
+function main2() {
   let app = simple(init, update2, view);
   let $ = start3(app, "#app", void 0);
   if (!$.isOk()) {
@@ -4517,4 +4747,4 @@ function main() {
 }
 
 // build/.lustre/entry.mjs
-main();
+main2();
