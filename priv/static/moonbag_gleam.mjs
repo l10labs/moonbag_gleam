@@ -353,6 +353,13 @@ function structurallyCompatibleObjects(a, b) {
   if (nonstructural.some((c) => a instanceof c)) return false;
   return a.constructor === b.constructor;
 }
+function divideFloat(a, b) {
+  if (b === 0) {
+    return 0;
+  } else {
+    return a / b;
+  }
+}
 function makeError(variant, module, line, fn, message, extra) {
   let error = new globalThis.Error(message);
   error.gleam_error = variant;
@@ -1083,6 +1090,9 @@ var unequalDictSymbol = /* @__PURE__ */ Symbol();
 // build/dev/javascript/gleam_stdlib/gleam_stdlib.mjs
 var Nil = void 0;
 var NOT_FOUND = {};
+function identity(x) {
+  return x;
+}
 function to_string(term) {
   return term.toString();
 }
@@ -1113,6 +1123,9 @@ var trim_start_regex = /* @__PURE__ */ new RegExp(
   `^[${unicode_whitespaces}]*`
 );
 var trim_end_regex = /* @__PURE__ */ new RegExp(`[${unicode_whitespaces}]*$`);
+function round(float2) {
+  return Math.round(float2);
+}
 function random_uniform() {
   const random_uniform_result = Math.random();
   if (random_uniform_result === 1) {
@@ -1146,6 +1159,33 @@ function compare(a, b) {
     } else {
       return new Gt();
     }
+  }
+}
+function min(a, b) {
+  let $ = a < b;
+  if ($) {
+    return a;
+  } else {
+    return b;
+  }
+}
+function max(a, b) {
+  let $ = a > b;
+  if ($) {
+    return a;
+  } else {
+    return b;
+  }
+}
+function negate(x) {
+  return -1 * x;
+}
+function round2(x) {
+  let $ = x >= 0;
+  if ($) {
+    return round(x);
+  } else {
+    return 0 - round(negate(x));
   }
 }
 
@@ -1853,6 +1893,15 @@ function attribute2(name, value) {
 }
 function class$(name) {
   return attribute2("class", name);
+}
+function style(property2, value) {
+  if (property2 === "") {
+    return class$("");
+  } else if (value === "") {
+    return class$("");
+  } else {
+    return attribute2("style", property2 + ":" + value + ";");
+  }
 }
 
 // build/dev/javascript/lustre/lustre/effect.mjs
@@ -4384,36 +4433,71 @@ function home_screen_view() {
     ])
   );
 }
-function game_stat_item(label, value) {
+function stat_bar_view(label, current_value, max_value, bar_fill_class) {
+  let _block;
+  {
+    let current = identity(current_value);
+    let max2 = identity(max_value);
+    let $ = max2 > 0;
+    if ($) {
+      let p2 = divideFloat(current, max2) * 100;
+      _block = max(0, min(p2, 100));
+    } else {
+      let $1 = current > 0;
+      if ($1) {
+        _block = 100;
+      } else {
+        _block = 0;
+      }
+    }
+  }
+  let percentage = _block;
+  let _block$1;
+  let _pipe = percentage;
+  let _pipe$1 = round2(_pipe);
+  _block$1 = to_string(_pipe$1);
+  let display_percentage = _block$1;
   return div(
-    toList([class$("flex justify-between items-baseline")]),
+    toList([class$("space-y-1 w-full")]),
     toList([
-      span(
-        toList([class$("text-sm text-gray-400 tracking-wider")]),
-        toList([text3(label + ":")])
+      div(
+        toList([
+          class$("flex justify-between items-baseline text-sm")
+        ]),
+        toList([
+          span(
+            toList([class$("text-gray-400 tracking-wider")]),
+            toList([text3(label)])
+          ),
+          span(
+            toList([class$("text-gray-300 font-medium")]),
+            toList([
+              text3(
+                to_string(current_value) + "/" + to_string(
+                  max_value
+                )
+              )
+            ])
+          )
+        ])
       ),
-      span(
-        toList([class$("text-base text-gray-100 font-medium")]),
-        toList([text3(value)])
-      )
-    ])
-  );
-}
-function game_stat_item_full_width(label, value) {
-  return div(
-    toList([
-      class$(
-        "pt-3 border-t border-gray-800 flex justify-between items-baseline"
-      )
-    ]),
-    toList([
-      span(
-        toList([class$("text-sm text-gray-400 tracking-wider")]),
-        toList([text3(label + ":")])
-      ),
-      span(
-        toList([class$("text-base text-gray-100 font-medium")]),
-        toList([text3(value)])
+      div(
+        toList([
+          class$(
+            "w-full bg-gray-800 rounded-none h-3 overflow-hidden border border-gray-700"
+          )
+        ]),
+        toList([
+          div(
+            toList([
+              class$(
+                bar_fill_class + " h-full rounded-none transition-all duration-300 ease-in-out"
+              ),
+              style("width", display_percentage + "%")
+            ]),
+            toList([])
+          )
+        ])
       )
     ])
   );
@@ -4449,21 +4533,13 @@ function game_state_view(game_state) {
   _block = to_string(_pipe);
   let level_str = _block;
   let _block$1;
-  let _pipe$1 = game_state.health;
+  let _pipe$1 = game_state.cheddah;
   _block$1 = to_string(_pipe$1);
-  let health_str = _block$1;
-  let _block$2;
-  let _pipe$2 = game_state.points;
-  _block$2 = to_string(_pipe$2);
-  let points_str = _block$2;
-  let _block$3;
-  let _pipe$3 = game_state.cheddah;
-  _block$3 = to_string(_pipe$3);
-  let cheddah_str = _block$3;
-  let _block$4;
-  let _pipe$4 = game_state.milestone;
-  _block$4 = to_string(_pipe$4);
-  let milestone_str = _block$4;
+  let cheddah_str = _block$1;
+  let max_health = 5;
+  let current_health = game_state.health;
+  let current_points = game_state.points;
+  let target_milestone = game_state.milestone;
   return div(
     toList([
       class$(
@@ -4531,17 +4607,26 @@ function game_state_view(game_state) {
               h2(
                 toList([
                   class$(
-                    "text-xl font-medium text-center mb-5 text-gray-300 tracking-wider uppercase"
+                    "text-xl font-medium text-center mb-6 text-gray-300 tracking-wider uppercase"
                   )
                 ]),
                 toList([text3("System Diagnostics")])
               ),
               div(
-                toList([class$("space-y-3")]),
+                toList([class$("space-y-5")]),
                 toList([
-                  game_stat_item("Integrity", health_str),
-                  game_stat_item("Data Points", points_str),
-                  game_stat_item_full_width("Signal Target", milestone_str)
+                  stat_bar_view(
+                    "Integrity",
+                    current_health,
+                    max_health,
+                    "bg-gray-300"
+                  ),
+                  stat_bar_view(
+                    "Signal Progress",
+                    current_points,
+                    target_milestone,
+                    "bg-gray-100"
+                  )
                 ])
               )
             ])

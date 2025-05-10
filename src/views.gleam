@@ -1,3 +1,4 @@
+import gleam/float
 import gleam/int
 import gleam/list
 import lustre/attribute
@@ -9,14 +10,6 @@ import models.{
   PlayerStartGame,
 }
 
-// --- THEME CONSTANTS (Conceptual - applied via Tailwind classes) ---
-// Background: bg-black or bg-gray-950
-// Primary Text: text-gray-100 or text-white
-// Secondary Text: text-gray-400 or text-gray-500
-// Borders/Accents: border-gray-700 or border-gray-800
-// Font: font-mono
-
-// --- HOME SCREEN ---
 pub fn home_screen_view() -> Element(Msg) {
   html.div(
     [
@@ -66,13 +59,79 @@ pub fn home_screen_view() -> Element(Msg) {
   )
 }
 
-// --- GAME STATE VIEW ---
+fn stat_bar_view(
+  label: String,
+  current_value: Int,
+  max_value: Int,
+  bar_fill_class: String,
+) -> Element(Msg) {
+  let percentage = {
+    let current = int.to_float(current_value)
+    let max = int.to_float(max_value)
+    case max >. 0.0 {
+      True -> {
+        let p = current /. max *. 100.0
+        float.max(0.0, float.min(p, 100.0))
+        // Clamp between 0 and 100
+      }
+      False -> {
+        case current >. 0.0 {
+          True -> 100.0
+          // If max is 0 but current is positive, show full
+          False -> 0.0
+          // If both 0, show empty
+        }
+      }
+    }
+  }
+
+  let display_percentage =
+    percentage
+    |> float.round
+    |> int.to_string
+
+  html.div([attribute.class("space-y-1 w-full")], [
+    html.div([attribute.class("flex justify-between items-baseline text-sm")], [
+      html.span([attribute.class("text-gray-400 tracking-wider")], [
+        html.text(label),
+      ]),
+      html.span([attribute.class("text-gray-300 font-medium")], [
+        html.text(
+          int.to_string(current_value) <> "/" <> int.to_string(max_value),
+        ),
+      ]),
+    ]),
+    html.div(
+      [
+        attribute.class(
+          "w-full bg-gray-800 rounded-none h-3 overflow-hidden border border-gray-700",
+        ),
+      ],
+      [
+        html.div(
+          [
+            attribute.class(
+              bar_fill_class
+              <> " h-full rounded-none transition-all duration-300 ease-in-out",
+            ),
+            attribute.style("width", display_percentage <> "%"),
+          ],
+          [],
+        ),
+      ],
+    ),
+  ])
+}
+
 pub fn game_state_view(game_state: GameState) -> Element(Msg) {
   let level_str = game_state.level |> int.to_string
-  let health_str = game_state.health |> int.to_string
-  let points_str = game_state.points |> int.to_string
   let cheddah_str = game_state.cheddah |> int.to_string
-  let milestone_str = game_state.milestone |> int.to_string
+
+  // Assume max_health is 100. Adjust if different.
+  let max_health = 5
+  let current_health = game_state.health
+  let current_points = game_state.points
+  let target_milestone = game_state.milestone
 
   html.div(
     [
@@ -81,7 +140,6 @@ pub fn game_state_view(game_state: GameState) -> Element(Msg) {
       ),
     ],
     [
-      // Top Status Bar (Fixed)
       html.header(
         [
           attribute.class(
@@ -89,7 +147,6 @@ pub fn game_state_view(game_state: GameState) -> Element(Msg) {
           ),
         ],
         [
-          // Level Display
           html.div([attribute.class("flex items-baseline gap-2")], [
             html.span(
               [
@@ -103,7 +160,6 @@ pub fn game_state_view(game_state: GameState) -> Element(Msg) {
               html.text(level_str),
             ]),
           ]),
-          // "Cheddah" (renamed to Credits for theme)
           html.div([attribute.class("flex items-baseline gap-2")], [
             html.span(
               [
@@ -119,16 +175,13 @@ pub fn game_state_view(game_state: GameState) -> Element(Msg) {
           ]),
         ],
       ),
-      // Main Content Area
       html.main(
         [
           attribute.class(
             "flex flex-col items-center justify-start w-full px-4 sm:px-6 pb-8 pt-24",
-            // pt-24 to clear h-16 bar + margin
           ),
         ],
         [
-          // Stats Panel
           html.div(
             [
               attribute.class(
@@ -139,22 +192,33 @@ pub fn game_state_view(game_state: GameState) -> Element(Msg) {
               html.h2(
                 [
                   attribute.class(
-                    "text-xl font-medium text-center mb-5 text-gray-300 tracking-wider uppercase",
+                    "text-xl font-medium text-center mb-6 text-gray-300 tracking-wider uppercase",
                   ),
                 ],
                 [html.text("System Diagnostics")],
               ),
-              html.div([attribute.class("space-y-3")], [
-                game_stat_item("Integrity", health_str),
-                // Health
-                game_stat_item("Data Points", points_str),
-                // Points
-                game_stat_item_full_width("Signal Target", milestone_str),
-                // Milestone
-              ]),
+              html.div(
+                [attribute.class("space-y-5")],
+                // Increased spacing for bars
+                [
+                  stat_bar_view(
+                    "Integrity",
+                    current_health,
+                    max_health,
+                    "bg-gray-300",
+                    // White-ish bar for health
+                  ),
+                  stat_bar_view(
+                    "Signal Progress",
+                    current_points,
+                    target_milestone,
+                    "bg-gray-100",
+                    // Slightly different white for progress
+                  ),
+                ],
+              ),
             ],
           ),
-          // Next Orb Pull Section
           html.div(
             [
               attribute.class(
@@ -173,7 +237,6 @@ pub fn game_state_view(game_state: GameState) -> Element(Msg) {
               next_orb_pull_view(game_state.orb_bag_in),
             ],
           ),
-          // Pull Orb Button
           html.button(
             [
               attribute.class(
@@ -189,40 +252,7 @@ pub fn game_state_view(game_state: GameState) -> Element(Msg) {
   )
 }
 
-// Helper for game stats
-fn game_stat_item(label: String, value: String) -> Element(Msg) {
-  html.div([attribute.class("flex justify-between items-baseline")], [
-    html.span([attribute.class("text-sm text-gray-400 tracking-wider")], [
-      html.text(label <> ":"),
-    ]),
-    html.span([attribute.class("text-base text-gray-100 font-medium")], [
-      html.text(value),
-    ]),
-  ])
-}
-
-fn game_stat_item_full_width(label: String, value: String) -> Element(Msg) {
-  html.div(
-    [
-      attribute.class(
-        "pt-3 border-t border-gray-800 flex justify-between items-baseline",
-      ),
-    ],
-    [
-      html.span([attribute.class("text-sm text-gray-400 tracking-wider")], [
-        html.text(label <> ":"),
-      ]),
-      html.span([attribute.class("text-base text-gray-100 font-medium")], [
-        html.text(value),
-      ]),
-    ],
-  )
-}
-
-// --- ORB RELATED VIEWS ---
 pub fn orb_view(orb: Orb) -> Element(Msg) {
-  // The styling is primarily handled by next_orb_pull_view for context
-  // This just provides the text content
   html.text(orb |> models.orb_to_string)
 }
 
@@ -241,7 +271,6 @@ pub fn next_orb_pull_view(orb_bag: List(Orb)) -> Element(Msg) {
   }
 }
 
-// --- WIN SCREEN ---
 pub fn win_screen_view(game_state: GameState) -> Element(Msg) {
   let current_level = game_state.level |> int.to_string
 
@@ -278,7 +307,6 @@ pub fn win_screen_view(game_state: GameState) -> Element(Msg) {
   )
 }
 
-// --- LOSE SCREEN ---
 pub fn lose_screen_view() -> Element(Msg) {
   html.div(
     [
@@ -291,7 +319,6 @@ pub fn lose_screen_view() -> Element(Msg) {
         [
           attribute.class(
             "text-4xl sm:text-6xl text-gray-500 font-medium tracking-widest mb-4",
-            // Dimmer for loss
           ),
         ],
         [html.text("SYSTEM CRITICAL")],
