@@ -44,7 +44,7 @@ pub type Curse {
 }
 
 pub type Market {
-  Market(List(MarketItem))
+  Market(items: List(MarketItem))
 }
 
 pub type MarketItem {
@@ -101,8 +101,22 @@ pub fn build_orb(orb_type: Orb, times times: Int) -> List(Orb) {
   list.repeat(orb_type, times)
 }
 
+pub fn init_market_items() -> List(MarketItem) {
+  [
+    build_market_item(PointOrb(1), 2),
+    build_market_item(PointOrb(1), 2),
+    build_market_item(PointOrb(1), 2),
+    build_market_item(PointOrb(2), 5),
+    build_market_item(PointOrb(3), 8),
+  ]
+}
+
+pub fn build_market_item(item: Orb, price: Int) -> MarketItem {
+  MarketItem(item:, price: Credits(price))
+}
+
 pub fn init_market() -> Market {
-  Market([])
+  init_market_items() |> Market
 }
 
 pub fn init_level() -> Level {
@@ -183,6 +197,10 @@ pub fn reset_for_next_round(game: Game) -> Game {
     )
 
   Game(..game, player:, level:)
+}
+
+pub fn buy_orbs(player: Player) -> Player {
+  todo
 }
 
 // Functions for types to strings

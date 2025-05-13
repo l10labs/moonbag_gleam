@@ -1,8 +1,11 @@
+import gleam/int
+import gleam/list
+import gleam/string
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
 import lustre/event
-import newtypes.{type Msg, type Player, Player}
+import newtypes.{type MarketItem, type Msg, type Player, Player}
 
 pub fn clean_button(msg: Msg, title: String) -> Element(Msg) {
   html.button(
@@ -46,4 +49,18 @@ pub fn square_view(content_string: String) -> Element(Msg) {
       ]),
     ],
   )
+}
+
+pub fn market_item_view(item: MarketItem) -> Element(Msg) {
+  let price = item.price.value |> int.to_string
+  let #(name, value) = case item.item {
+    newtypes.BombOrb(value) -> #("Bomb", value |> int.to_string)
+    newtypes.PointOrb(value) -> #("Point", value |> int.to_string)
+    newtypes.EmptyOrb -> #("Empty", 0 |> int.to_string)
+  }
+
+  html.div([attribute.class("flex flex-col items-center justify-center")], [
+    square_view([name, " ", value] |> string.concat),
+    html.h4([], [html.text("cost: " <> price)]),
+  ])
 }

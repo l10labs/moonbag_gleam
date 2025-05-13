@@ -1154,6 +1154,25 @@ function reverse_and_prepend(loop$prefix, loop$suffix) {
 function reverse(list4) {
   return reverse_and_prepend(list4, toList([]));
 }
+function map_loop(loop$list, loop$fun, loop$acc) {
+  while (true) {
+    let list4 = loop$list;
+    let fun = loop$fun;
+    let acc = loop$acc;
+    if (list4.hasLength(0)) {
+      return reverse(acc);
+    } else {
+      let first$1 = list4.head;
+      let rest$1 = list4.tail;
+      loop$list = rest$1;
+      loop$fun = fun;
+      loop$acc = prepend(fun(first$1), acc);
+    }
+  }
+}
+function map(list4, fun) {
+  return map_loop(list4, fun, toList([]));
+}
 function append_loop(loop$first, loop$second) {
   while (true) {
     let first = loop$first;
@@ -3945,6 +3964,9 @@ function text3(content) {
 function h1(attrs, children) {
   return element2("h1", attrs, children);
 }
+function h4(attrs, children) {
+  return element2("h4", attrs, children);
+}
 function nav(attrs, children) {
   return element2("nav", attrs, children);
 }
@@ -4142,9 +4164,16 @@ var Curses = class extends CustomType {
 var NothingCurse = class extends CustomType {
 };
 var Market = class extends CustomType {
-  constructor(x0) {
+  constructor(items) {
     super();
-    this[0] = x0;
+    this.items = items;
+  }
+};
+var MarketItem = class extends CustomType {
+  constructor(item, price) {
+    super();
+    this.item = item;
+    this.price = price;
   }
 };
 var Level = class extends CustomType {
@@ -4221,8 +4250,21 @@ function init_player() {
   let curses = new Curses(toList([new NothingCurse()]));
   return new Player(health, points, credits, orb_bag, curses);
 }
+function build_market_item(item, price) {
+  return new MarketItem(item, new Credits(price));
+}
+function init_market_items() {
+  return toList([
+    build_market_item(new PointOrb(1), 2),
+    build_market_item(new PointOrb(1), 2),
+    build_market_item(new PointOrb(1), 2),
+    build_market_item(new PointOrb(2), 5),
+    build_market_item(new PointOrb(3), 8)
+  ]);
+}
 function init_market() {
-  return new Market(toList([]));
+  let _pipe = init_market_items();
+  return new Market(_pipe);
 }
 function init_level() {
   return new Level(1, 1, new Points(10));
@@ -4433,6 +4475,56 @@ function square_view(content_string) {
     ])
   );
 }
+function market_item_view(item) {
+  let _block;
+  let _pipe = item.price.value;
+  _block = to_string(_pipe);
+  let price = _block;
+  let _block$1;
+  let $1 = item.item;
+  if ($1 instanceof BombOrb) {
+    let value2 = $1[0];
+    _block$1 = [
+      "Bomb",
+      (() => {
+        let _pipe$1 = value2;
+        return to_string(_pipe$1);
+      })()
+    ];
+  } else if ($1 instanceof PointOrb) {
+    let value2 = $1[0];
+    _block$1 = [
+      "Point",
+      (() => {
+        let _pipe$1 = value2;
+        return to_string(_pipe$1);
+      })()
+    ];
+  } else {
+    _block$1 = [
+      "Empty",
+      (() => {
+        let _pipe$1 = 0;
+        return to_string(_pipe$1);
+      })()
+    ];
+  }
+  let $ = _block$1;
+  let name = $[0];
+  let value = $[1];
+  return div(
+    toList([class$("flex flex-col items-center justify-center")]),
+    toList([
+      square_view(
+        (() => {
+          let _pipe$1 = toList([name, " ", value]);
+          return concat2(_pipe$1);
+        })()
+      ),
+      h4(toList([]), toList([text3("cost: " + price)]))
+    ])
+  );
+}
 
 // build/dev/javascript/moonbag_gleam/views.mjs
 function home() {
@@ -4554,6 +4646,8 @@ function lose() {
   );
 }
 function market(game2) {
+  let market$1 = game2.market;
+  let items = market$1.items;
   return div(
     toList([class$("")]),
     toList([
@@ -4566,6 +4660,13 @@ function market(game2) {
         ]),
         toList([
           h1(toList([]), toList([text3("Market View")])),
+          div(
+            toList([class$("flex flex-row")]),
+            (() => {
+              let _pipe = items;
+              return map(_pipe, market_item_view);
+            })()
+          ),
           clean_button(new PlayerNextRound(), "Next Round")
         ])
       )

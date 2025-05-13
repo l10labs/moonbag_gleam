@@ -1,4 +1,5 @@
 import gleam/int
+import gleam/list
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
@@ -100,6 +101,8 @@ pub fn lose() -> Element(Msg) {
 }
 
 pub fn market(game: Game) -> Element(Msg) {
+  let Game(_, _, market) = game
+  let items = market.items
   html.div([attribute.class("")], [
     ui.nav_bar_view(game.player),
     html.div(
@@ -110,22 +113,11 @@ pub fn market(game: Game) -> Element(Msg) {
       ],
       [
         html.h1([], [html.text("Market View")]),
-        // html.div([attribute.class("flex flex-row p-4")], [
-        //   html.div([], [
-        //     html.text("Points"),
-        //     ui.square_view(points |> int.to_string),
-        //   ]),
-        //   html.div([], [
-        //     html.text("Milestone"),
-        //     ui.square_view(milestone |> int.to_string),
-        //   ]),
-        // ]),
+        html.div(
+          [attribute.class("flex flex-row")],
+          items |> list.map(ui.market_item_view),
+        ),
         ui.clean_button(newtypes.PlayerNextRound, "Next Round"),
-        // html.div([attribute.class("flex flex-row gap-2")], [
-      //   ui.clean_button(newtypes.TestWinView, "Win View"),
-      //   ui.clean_button(newtypes.PlayerNextLevel, "Lose View"),
-      //   ui.clean_button(newtypes.PlayerNextLevel, "Market View"),
-      // ]),
       ],
     ),
   ])
