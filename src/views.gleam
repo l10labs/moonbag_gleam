@@ -1,108 +1,85 @@
 import gleam/int
-import gleam/list
-import gleam/string
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
-import lustre/event
-import models.{
-  type GameState, type Msg, type Orb, Empty, PlayerNextLevel, PlayerPullOrb,
-  PlayerStartGame,
-}
+import newtypes.{type Game, type Msg, Game, Points}
+import ui
 
-pub fn home_screen_view() -> Element(Msg) {
+pub fn home() -> Element(Msg) {
   html.div(
-    [attribute.class("flex flex-col gaps-2 justify-center items-center")],
     [
-      html.text("Moon Bag"),
-      html.button(
+      attribute.class(
+        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4 border border-white",
+      ),
+    ],
+    [
+      html.div(
+        [attribute.class("flex flex-col items-center gap-10 text-center")],
         [
-          attribute.class("border border-black rounded"),
-          event.on_click(PlayerStartGame),
+          html.h1(
+            [
+              attribute.class(
+                "text-5xl sm:text-6xl font-semibold tracking-wider",
+              ),
+            ],
+            [html.text("MOON BAG")],
+          ),
+          ui.clean_button(newtypes.PlayerStartGame, "Start Game"),
         ],
-        [html.text("Start Game")],
       ),
     ],
   )
 }
 
-pub fn game_state_view(game_state: GameState) -> Element(Msg) {
-  let level = game_state.level |> int.to_string
-  let health = game_state.health |> int.to_string
-  let points = game_state.points |> int.to_string
-  let cheddah = game_state.cheddah |> int.to_string
-  let milestone = game_state.milestone |> int.to_string
-  let orb_pull_view = game_state.orb_bag_in |> next_orb_pull_view
-  // let orb_bag = game_state.orb_bag_in |> list.map(orb_view)
+pub fn game(game: Game) -> Element(Msg) {
+  let Game(player, _, level) = game
+  let Points(points) = player.points
+  let Points(milestone) = level.milestone
 
-  html.div(
-    [attribute.class("flex flex-col gaps-2 justify-center items-center")],
-    [
-      html.p([], [html.text("level: " <> level)]),
-      html.p([], [html.text("health: " <> health)]),
-      html.p([], [html.text("points: " <> points)]),
-      html.p([], [html.text("cheddah: " <> cheddah)]),
-      html.p([], [html.text("milestone: " <> milestone)]),
-      html.div([], [html.text("next orb pull: "), orb_pull_view]),
-      html.button(
-        [
-          attribute.class("border border-black rounded"),
-          event.on_click(PlayerPullOrb),
-        ],
-        [html.text("Pull Orb From Bag")],
-      ),
-      // html.div([attribute.class("flex flex-col")], orb_bag),
-    ],
-  )
+  html.div([attribute.class("border border-white")], [
+    ui.nav_bar_view(game.player),
+    html.div(
+      [
+        attribute.class(
+          "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4",
+        ),
+      ],
+      [
+        html.h1([], [html.text("Game View")]),
+        html.div([attribute.class("flex flex-row p-4")], [
+          html.div([], [
+            html.text("Points"),
+            ui.square_view(points |> int.to_string),
+          ]),
+          html.div([], [
+            html.text("Milestone"),
+            ui.square_view(milestone |> int.to_string),
+          ]),
+        ]),
+        // html.div([attribute.class("flex flex-row gap-2")], [
+      //   ui.clean_button(newtypes.TestWinView, "Win View"),
+      //   ui.clean_button(newtypes.PlayerNextLevel, "Lose View"),
+      //   ui.clean_button(newtypes.PlayerNextLevel, "Market View"),
+      // ]),
+      ],
+    ),
+  ])
 }
 
-pub fn win_screen_view(game_state: GameState) -> Element(Msg) {
+pub fn win() -> Element(Msg) {
   html.div(
-    [attribute.class("flex flex-col gaps-2 justify-center items-center")],
     [
-      html.p([], [html.text("You Won!")]),
-      html.p([], [
-        html.text(string.concat(["Level ", game_state.level |> int.to_string])),
+      attribute.class(
+        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4",
+      ),
+    ],
+    [
+      html.h1([], [html.text("YOU WON! ONTO THE NEXT ROUND")]),
+      html.div([attribute.class("flex flex-row gap-2")], [
+        ui.clean_button(newtypes.TestWinView, "Win View"),
+        ui.clean_button(newtypes.PlayerNextLevel, "Lose View"),
+        ui.clean_button(newtypes.PlayerNextLevel, "Market View"),
       ]),
-      html.button(
-        [
-          attribute.class("border border-black rounded"),
-          event.on_click(PlayerNextLevel),
-        ],
-        [html.text("Next Level")],
-      ),
     ],
   )
-}
-
-pub fn lose_screen_view() -> Element(Msg) {
-  html.div(
-    [attribute.class("flex flex-col gaps-2 justify-center items-center")],
-    [
-      html.text("You Lost!"),
-      html.button(
-        [
-          attribute.class("border border-black rounded"),
-          event.on_click(PlayerStartGame),
-        ],
-        [html.text("Restart?")],
-      ),
-    ],
-  )
-}
-
-pub fn orb_view(orb: Orb) -> Element(Msg) {
-  let orb_text = orb |> models.orb_to_string
-
-  html.div([], [html.text(orb_text)])
-}
-
-pub fn next_orb_pull_view(orb_bag: List(Orb)) -> Element(Msg) {
-  let result = orb_bag |> list.first
-  let orb = case result {
-    Error(_) -> Empty
-    Ok(orb) -> orb
-  }
-
-  orb |> orb_view
 }
