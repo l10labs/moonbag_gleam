@@ -115,7 +115,8 @@ pub fn market(game: Game) -> Element(Msg) {
         html.h1([], [html.text("Market View")]),
         html.div(
           [attribute.class("flex flex-row")],
-          items |> list.map(ui.market_item_view),
+          items
+            |> list.map(ui.market_item_view),
         ),
         ui.clean_button(newtypes.PlayerNextRound, "Next Round"),
       ],

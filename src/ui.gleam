@@ -1,5 +1,4 @@
 import gleam/int
-import gleam/list
 import gleam/string
 import lustre/attribute
 import lustre/element.{type Element}
@@ -60,7 +59,9 @@ pub fn market_item_view(item: MarketItem) -> Element(Msg) {
   }
 
   html.div([attribute.class("flex flex-col items-center justify-center")], [
-    square_view([name, " ", value] |> string.concat),
-    html.h4([], [html.text("cost: " <> price)]),
+    html.button([event.on_click(newtypes.PlayerBuyItem(item))], [
+      square_view([name, " ", value] |> string.concat),
+      html.h4([], [html.text("cost: " <> price)]),
+    ]),
   ])
 }

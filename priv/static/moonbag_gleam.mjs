@@ -4226,6 +4226,12 @@ var PlayerVisitMarket = class extends CustomType {
 };
 var PlayerNextRound = class extends CustomType {
 };
+var PlayerBuyItem = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
 function build_orb(orb_type, times) {
   return repeat(orb_type, times);
 }
@@ -4385,6 +4391,34 @@ function reset_for_next_round(game2) {
   let _record$2 = game2;
   return new Game(player$1, level$1, _record$2.market);
 }
+function buy_orb(game2, item) {
+  let player = game2.player;
+  let level = game2.level;
+  let market2 = game2.market;
+  let item$1 = item.item;
+  let price = item.price;
+  let _block;
+  let $1 = player.credits.value >= price.value;
+  if (!$1) {
+    _block = [player.credits.value];
+  } else {
+    _block = [player.credits.value - price.value];
+  }
+  let $ = _block;
+  let credits = $[0];
+  let _block$1;
+  let _record = player;
+  _block$1 = new Player(
+    _record.health,
+    _record.points,
+    new Credits(credits),
+    _record.orb_bag,
+    _record.curses
+  );
+  let player$1 = _block$1;
+  let _record$1 = game2;
+  return new Game(player$1, _record$1.level, _record$1.market);
+}
 function health_to_string(health) {
   let value = health.value;
   return "Health(" + to_string(value) + ")";
@@ -4515,13 +4549,18 @@ function market_item_view(item) {
   return div(
     toList([class$("flex flex-col items-center justify-center")]),
     toList([
-      square_view(
-        (() => {
-          let _pipe$1 = toList([name, " ", value]);
-          return concat2(_pipe$1);
-        })()
-      ),
-      h4(toList([]), toList([text3("cost: " + price)]))
+      button(
+        toList([on_click(new PlayerBuyItem(item))]),
+        toList([
+          square_view(
+            (() => {
+              let _pipe$1 = toList([name, " ", value]);
+              return concat2(_pipe$1);
+            })()
+          ),
+          h4(toList([]), toList([text3("cost: " + price)]))
+        ])
+      )
     ])
   );
 }
@@ -4704,6 +4743,11 @@ function update2(model, msg) {
     let _pipe$1 = update_credits(_pipe);
     let _pipe$2 = reset_for_next_round(_pipe$1);
     return new MarketView(_pipe$2);
+  } else if (model instanceof MarketView && msg instanceof PlayerBuyItem) {
+    let game2 = model[0];
+    let item = msg[0];
+    let _pipe = buy_orb(game2, item);
+    return new MarketView(_pipe);
   } else if (model instanceof MarketView && msg instanceof PlayerNextRound) {
     let game2 = model[0];
     let _pipe = game2;

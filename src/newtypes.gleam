@@ -73,6 +73,7 @@ pub type Msg {
   PlayerPullOrb
   PlayerVisitMarket
   PlayerNextRound
+  PlayerBuyItem(MarketItem)
 }
 
 pub fn init_player() -> Player {
@@ -199,8 +200,18 @@ pub fn reset_for_next_round(game: Game) -> Game {
   Game(..game, player:, level:)
 }
 
-pub fn buy_orbs(player: Player) -> Player {
-  todo
+pub fn buy_orb(game: Game, item: MarketItem) -> Game {
+  let Game(player, level, market) = game
+  let MarketItem(item, price) = item
+
+  let #(credits) = case player.credits.value >= price.value {
+    False -> #(player.credits.value)
+    True -> #(player.credits.value - price.value)
+  }
+
+  let player = Player(..player, credits: Credits(credits))
+
+  Game(..game, player:)
 }
 
 // Functions for types to strings

@@ -50,18 +50,11 @@ fn update(model: Model, msg: Msg) -> Model {
       |> newtypes.update_credits
       |> newtypes.reset_for_next_round
       |> MarketView
+    MarketView(game), newtypes.PlayerBuyItem(item) ->
+      newtypes.buy_orb(game, item) |> MarketView
     MarketView(game), newtypes.PlayerNextRound -> game |> GameView
     _, _ -> HomeView
   }
-  // case model, msg {
-  //   HomePage, PlayerStartGame -> GamePage(models.init_gamestate())
-  //   GamePage(game_state), PlayerPullOrb -> GamePage(models.pull_orb(game_state))
-  //   GamePage(game_state), PlayerNextLevel -> {
-  //     GamePage(models.next_level(game_state))
-  //   }
-  //   GamePage(_), PlayerStartGame -> GamePage(models.init_gamestate())
-  //   HomePage, _ -> HomePage
-  // }
 }
 
 // VIEW ------------------------------------------------------------------------
