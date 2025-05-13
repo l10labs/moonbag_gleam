@@ -9,8 +9,8 @@ pub fn clean_button(msg: Msg, title: String) -> Element(Msg) {
     [
       attribute.class(
         "px-8 py-3 mt-4 font-medium "
-        <> "border-2 border-white rounded "
-        <> "hover:bg-white hover:text-black "
+        <> "border-2 border-black rounded "
+        <> "hover:bg-black hover:text-white "
         <> "focus:outline-none focus:ring-2 focus:ring-white "
         <> "focus:ring-offset-2 focus:ring-offset-black "
         <> "transition-colors duration-150 ease-in-out",
@@ -25,11 +25,7 @@ pub fn nav_bar_view(player: Player) -> Element(Msg) {
   let Player(health, _, credits, _, _) = player
 
   html.nav(
-    [
-      attribute.class(
-        "bg-black text-white px-4 sm:px-6 py-2 flex justify-between items-center border border-white",
-      ),
-    ],
+    [attribute.class("px-4 sm:px-6 py-2 flex justify-between items-center")],
     [
       html.div([], [html.text(newtypes.health_to_string(health))]),
       html.div([], [html.text(newtypes.credits_to_string(credits))]),
@@ -41,7 +37,7 @@ pub fn square_view(content_string: String) -> Element(Msg) {
   html.div(
     [
       attribute.class(
-        "bg-black text-white border border-white w-24 h-24 flex items-center justify-center",
+        "w-24 h-24 flex items-center justify-center border border-black",
       ),
     ],
     [

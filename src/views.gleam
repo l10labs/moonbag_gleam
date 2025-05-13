@@ -9,7 +9,7 @@ pub fn home() -> Element(Msg) {
   html.div(
     [
       attribute.class(
-        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4 border border-white",
+        "min-h-screen flex flex-col items-center justify-center p-4",
       ),
     ],
     [
@@ -36,12 +36,12 @@ pub fn game(game: Game) -> Element(Msg) {
   let Points(points) = player.points
   let Points(milestone) = level.milestone
 
-  html.div([attribute.class("border border-white")], [
+  html.div([attribute.class("")], [
     ui.nav_bar_view(game.player),
     html.div(
       [
         attribute.class(
-          "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4",
+          "min-h-screen flex flex-col items-center justify-center p-4",
         ),
       ],
       [
@@ -71,7 +71,7 @@ pub fn win() -> Element(Msg) {
   html.div(
     [
       attribute.class(
-        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4",
+        "min-h-screen flex flex-col items-center justify-center p-4",
       ),
     ],
     [
@@ -87,7 +87,7 @@ pub fn lose() -> Element(Msg) {
   html.div(
     [
       attribute.class(
-        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4",
+        "min-h-screen flex flex-col items-center justify-center p-4",
       ),
     ],
     [
@@ -100,12 +100,12 @@ pub fn lose() -> Element(Msg) {
 }
 
 pub fn market(game: Game) -> Element(Msg) {
-  html.div([attribute.class("border border-white")], [
+  html.div([attribute.class("")], [
     ui.nav_bar_view(game.player),
     html.div(
       [
         attribute.class(
-          "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4",
+          "min-h-screen flex flex-col items-center justify-center p-4",
         ),
       ],
       [
@@ -135,7 +135,7 @@ pub fn error() -> Element(Msg) {
   html.div(
     [
       attribute.class(
-        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4 text-4xl",
+        "min-h-screen flex flex-col items-center justify-center p-4 text-4xl",
       ),
     ],
     [html.h1([], [html.text("404 ERROR")])],

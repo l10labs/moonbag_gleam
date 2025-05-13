@@ -4392,7 +4392,7 @@ function clean_button(msg, title) {
   return button(
     toList([
       class$(
-        "px-8 py-3 mt-4 font-medium border-2 border-white rounded hover:bg-white hover:text-black focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black transition-colors duration-150 ease-in-out"
+        "px-8 py-3 mt-4 font-medium border-2 border-black rounded hover:bg-black hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black transition-colors duration-150 ease-in-out"
       ),
       on_click(msg)
     ]),
@@ -4404,9 +4404,7 @@ function nav_bar_view(player) {
   let credits = player.credits;
   return nav(
     toList([
-      class$(
-        "bg-black text-white px-4 sm:px-6 py-2 flex justify-between items-center border border-white"
-      )
+      class$("px-4 sm:px-6 py-2 flex justify-between items-center")
     ]),
     toList([
       div(
@@ -4424,7 +4422,7 @@ function square_view(content_string) {
   return div(
     toList([
       class$(
-        "bg-black text-white border border-white w-24 h-24 flex items-center justify-center"
+        "w-24 h-24 flex items-center justify-center border border-black"
       )
     ]),
     toList([
@@ -4441,7 +4439,7 @@ function home() {
   return div(
     toList([
       class$(
-        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4 border border-white"
+        "min-h-screen flex flex-col items-center justify-center p-4"
       )
     ]),
     toList([
@@ -4472,13 +4470,13 @@ function game(game2) {
   let $1 = level.milestone;
   let milestone = $1.value;
   return div(
-    toList([class$("border border-white")]),
+    toList([class$("")]),
     toList([
       nav_bar_view(game2.player),
       div(
         toList([
           class$(
-            "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4"
+            "min-h-screen flex flex-col items-center justify-center p-4"
           )
         ]),
         toList([
@@ -4522,7 +4520,7 @@ function win() {
   return div(
     toList([
       class$(
-        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4"
+        "min-h-screen flex flex-col items-center justify-center p-4"
       )
     ]),
     toList([
@@ -4543,7 +4541,7 @@ function lose() {
   return div(
     toList([
       class$(
-        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4"
+        "min-h-screen flex flex-col items-center justify-center p-4"
       )
     ]),
     toList([
@@ -4557,13 +4555,13 @@ function lose() {
 }
 function market(game2) {
   return div(
-    toList([class$("border border-white")]),
+    toList([class$("")]),
     toList([
       nav_bar_view(game2.player),
       div(
         toList([
           class$(
-            "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4"
+            "min-h-screen flex flex-col items-center justify-center p-4"
           )
         ]),
         toList([
@@ -4578,7 +4576,7 @@ function error() {
   return div(
     toList([
       class$(
-        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4 text-4xl"
+        "min-h-screen flex flex-col items-center justify-center p-4 text-4xl"
       )
     ]),
     toList([h1(toList([]), toList([text3("404 ERROR")]))])
