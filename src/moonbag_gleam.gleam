@@ -2,8 +2,9 @@
 
 import lustre
 import lustre/element.{type Element}
-import models.{
-  type GameState, type Msg, PlayerNextLevel, PlayerPullOrb, PlayerStartGame,
+import newtypes.{
+  type FrontendViews, type Msg, GameView, HomeView, LoseView, MarketView,
+  PlayerStartGame, WinView,
 }
 import views
 
@@ -20,17 +21,14 @@ pub fn main() {
 
 /// The `Model` is the state of our entire application.
 ///
-type Model {
-  HomePage
-  GamePage(GameState)
-}
+type Model =
+  FrontendViews
 
 /// The `init` function gets called when we first start our app. It sets the
 /// initial state of the app.
 ///
 fn init(_) -> Model {
-  // models.init_gamestate()
-  HomePage
+  HomeView
 }
 
 // UPDATE ----------------------------------------------------------------------
@@ -41,14 +39,19 @@ fn init(_) -> Model {
 ///
 fn update(model: Model, msg: Msg) -> Model {
   case model, msg {
-    HomePage, PlayerStartGame -> GamePage(models.init_gamestate())
-    GamePage(game_state), PlayerPullOrb -> GamePage(models.pull_orb(game_state))
-    GamePage(game_state), PlayerNextLevel -> {
-      GamePage(models.next_level(game_state))
-    }
-    GamePage(_), PlayerStartGame -> GamePage(models.init_gamestate())
-    HomePage, _ -> HomePage
+    HomeView, PlayerStartGame -> GameView(newtypes.init_game())
+    GameView(game), newtypes.TestWinView -> WinView(game)
+    _, _ -> HomeView
   }
+  // case model, msg {
+  //   HomePage, PlayerStartGame -> GamePage(models.init_gamestate())
+  //   GamePage(game_state), PlayerPullOrb -> GamePage(models.pull_orb(game_state))
+  //   GamePage(game_state), PlayerNextLevel -> {
+  //     GamePage(models.next_level(game_state))
+  //   }
+  //   GamePage(_), PlayerStartGame -> GamePage(models.init_gamestate())
+  //   HomePage, _ -> HomePage
+  // }
 }
 
 // VIEW ------------------------------------------------------------------------
@@ -58,15 +61,22 @@ fn update(model: Model, msg: Msg) -> Model {
 ///
 fn view(model: Model) -> Element(Msg) {
   case model {
-    HomePage -> views.home_screen_view()
-    GamePage(game_state) -> {
-      case game_state.points, game_state.health {
-        p, _ if p >= game_state.milestone -> {
-          views.win_screen_view(game_state)
-        }
-        _, h if h <= 0 -> views.lose_screen_view()
-        _, _ -> views.game_state_view(game_state)
-      }
-    }
+    HomeView -> views.home()
+    GameView(game) -> views.game(game)
+    WinView(_) -> views.win()
+    LoseView(_) -> views.home()
+    MarketView(_) -> views.home()
   }
+  // case model {
+  //   HomePage -> views.home_screen_view()
+  //   GamePage(game_state) -> {
+  //     case game_state.points, game_state.health {
+  //       p, _ if p >= game_state.milestone -> {
+  //         views.win_screen_view(game_state)
+  //       }
+  //       _, h if h <= 0 -> views.lose_screen_view()
+  //       _, _ -> views.game_state_view(game_state)
+  //     }
+  //   }
+  // }
 }
