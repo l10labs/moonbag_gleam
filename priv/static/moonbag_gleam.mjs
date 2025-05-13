@@ -354,14 +354,14 @@ function structurallyCompatibleObjects(a, b) {
   return a.constructor === b.constructor;
 }
 function makeError(variant, module, line, fn, message, extra) {
-  let error = new globalThis.Error(message);
-  error.gleam_error = variant;
-  error.module = module;
-  error.line = line;
-  error.function = fn;
-  error.fn = fn;
-  for (let k in extra) error[k] = extra[k];
-  return error;
+  let error2 = new globalThis.Error(message);
+  error2.gleam_error = variant;
+  error2.module = module;
+  error2.line = line;
+  error2.function = fn;
+  error2.fn = fn;
+  for (let k in extra) error2[k] = extra[k];
+  return error2;
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/order.mjs
@@ -1154,9 +1154,6 @@ function reverse_and_prepend(loop$prefix, loop$suffix) {
 function reverse(list4) {
   return reverse_and_prepend(list4, toList([]));
 }
-function new$() {
-  return toList([]);
-}
 function append_loop(loop$first, loop$second) {
   while (true) {
     let first = loop$first;
@@ -1173,6 +1170,23 @@ function append_loop(loop$first, loop$second) {
 }
 function append(first, second) {
   return append_loop(reverse(first), second);
+}
+function flatten_loop(loop$lists, loop$acc) {
+  while (true) {
+    let lists = loop$lists;
+    let acc = loop$acc;
+    if (lists.hasLength(0)) {
+      return reverse(acc);
+    } else {
+      let list4 = lists.head;
+      let further_lists = lists.tail;
+      loop$lists = further_lists;
+      loop$acc = reverse_and_prepend(list4, acc);
+    }
+  }
+}
+function flatten(lists) {
+  return flatten_loop(lists, toList([]));
 }
 function fold(loop$list, loop$initial, loop$fun) {
   while (true) {
@@ -1608,7 +1622,7 @@ var Set2 = class extends CustomType {
     this.dict = dict2;
   }
 };
-function new$2() {
+function new$() {
   return new Set2(new_map());
 }
 function contains(set, member) {
@@ -1626,7 +1640,7 @@ var EMPTY_DICT = /* @__PURE__ */ Dict.new();
 function empty_dict() {
   return EMPTY_DICT;
 }
-var EMPTY_SET = /* @__PURE__ */ new$2();
+var EMPTY_SET = /* @__PURE__ */ new$();
 function empty_set() {
   return EMPTY_SET;
 }
@@ -2242,7 +2256,7 @@ var Remove = class extends CustomType {
     this.count = count;
   }
 };
-function new$5(index3, removed, changes, children) {
+function new$4(index3, removed, changes, children) {
   return new Patch(index3, removed, changes, children);
 }
 var replace_text_kind = 0;
@@ -2312,12 +2326,12 @@ function diff_attributes(loop$controlled, loop$path, loop$mapper, loop$events, l
     let mapper = loop$mapper;
     let events = loop$events;
     let old = loop$old;
-    let new$9 = loop$new;
+    let new$8 = loop$new;
     let added = loop$added;
     let removed = loop$removed;
-    if (old.hasLength(0) && new$9.hasLength(0)) {
+    if (old.hasLength(0) && new$8.hasLength(0)) {
       return new AttributeChange(added, removed, events);
-    } else if (old.atLeastLength(1) && old.head instanceof Event2 && new$9.hasLength(0)) {
+    } else if (old.atLeastLength(1) && old.head instanceof Event2 && new$8.hasLength(0)) {
       let prev = old.head;
       let name = old.head.name;
       let old$1 = old.tail;
@@ -2328,10 +2342,10 @@ function diff_attributes(loop$controlled, loop$path, loop$mapper, loop$events, l
       loop$mapper = mapper;
       loop$events = events$1;
       loop$old = old$1;
-      loop$new = new$9;
+      loop$new = new$8;
       loop$added = added;
       loop$removed = removed$1;
-    } else if (old.atLeastLength(1) && new$9.hasLength(0)) {
+    } else if (old.atLeastLength(1) && new$8.hasLength(0)) {
       let prev = old.head;
       let old$1 = old.tail;
       let removed$1 = prepend(prev, removed);
@@ -2340,14 +2354,14 @@ function diff_attributes(loop$controlled, loop$path, loop$mapper, loop$events, l
       loop$mapper = mapper;
       loop$events = events;
       loop$old = old$1;
-      loop$new = new$9;
+      loop$new = new$8;
       loop$added = added;
       loop$removed = removed$1;
-    } else if (old.hasLength(0) && new$9.atLeastLength(1) && new$9.head instanceof Event2) {
-      let next = new$9.head;
-      let name = new$9.head.name;
-      let handler = new$9.head.handler;
-      let new$1 = new$9.tail;
+    } else if (old.hasLength(0) && new$8.atLeastLength(1) && new$8.head instanceof Event2) {
+      let next = new$8.head;
+      let name = new$8.head.name;
+      let handler = new$8.head.handler;
+      let new$1 = new$8.tail;
       let added$1 = prepend(next, added);
       let events$1 = add_event(events, mapper, path, name, handler);
       loop$controlled = controlled;
@@ -2358,9 +2372,9 @@ function diff_attributes(loop$controlled, loop$path, loop$mapper, loop$events, l
       loop$new = new$1;
       loop$added = added$1;
       loop$removed = removed;
-    } else if (old.hasLength(0) && new$9.atLeastLength(1)) {
-      let next = new$9.head;
-      let new$1 = new$9.tail;
+    } else if (old.hasLength(0) && new$8.atLeastLength(1)) {
+      let next = new$8.head;
+      let new$1 = new$8.tail;
       let added$1 = prepend(next, added);
       loop$controlled = controlled;
       loop$path = path;
@@ -2373,8 +2387,8 @@ function diff_attributes(loop$controlled, loop$path, loop$mapper, loop$events, l
     } else {
       let prev = old.head;
       let remaining_old = old.tail;
-      let next = new$9.head;
-      let remaining_new = new$9.tail;
+      let next = new$8.head;
+      let remaining_new = new$8.tail;
       let $ = compare3(prev, next);
       if (prev instanceof Attribute && $ instanceof Eq && next instanceof Attribute) {
         let _block;
@@ -2529,7 +2543,7 @@ function diff_attributes(loop$controlled, loop$path, loop$mapper, loop$events, l
         loop$mapper = mapper;
         loop$events = events$1;
         loop$old = remaining_old;
-        loop$new = new$9;
+        loop$new = new$8;
         loop$added = added;
         loop$removed = removed$1;
       } else {
@@ -2539,7 +2553,7 @@ function diff_attributes(loop$controlled, loop$path, loop$mapper, loop$events, l
         loop$mapper = mapper;
         loop$events = events;
         loop$old = remaining_old;
-        loop$new = new$9;
+        loop$new = new$8;
         loop$added = added;
         loop$removed = removed$1;
       }
@@ -2550,7 +2564,7 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
   while (true) {
     let old = loop$old;
     let old_keyed = loop$old_keyed;
-    let new$9 = loop$new;
+    let new$8 = loop$new;
     let new_keyed = loop$new_keyed;
     let moved = loop$moved;
     let moved_offset = loop$moved_offset;
@@ -2562,12 +2576,12 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
     let children = loop$children;
     let mapper = loop$mapper;
     let events = loop$events;
-    if (old.hasLength(0) && new$9.hasLength(0)) {
+    if (old.hasLength(0) && new$8.hasLength(0)) {
       return new Diff(
         new Patch(patch_index, removed, changes, children),
         events
       );
-    } else if (old.atLeastLength(1) && new$9.hasLength(0)) {
+    } else if (old.atLeastLength(1) && new$8.hasLength(0)) {
       let prev = old.head;
       let old$1 = old.tail;
       let _block;
@@ -2581,7 +2595,7 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
       let events$1 = remove_child(events, path, node_index, prev);
       loop$old = old$1;
       loop$old_keyed = old_keyed;
-      loop$new = new$9;
+      loop$new = new$8;
       loop$new_keyed = new_keyed;
       loop$moved = moved;
       loop$moved_offset = moved_offset;
@@ -2593,32 +2607,32 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
       loop$children = children;
       loop$mapper = mapper;
       loop$events = events$1;
-    } else if (old.hasLength(0) && new$9.atLeastLength(1)) {
+    } else if (old.hasLength(0) && new$8.atLeastLength(1)) {
       let events$1 = add_children(
         events,
         mapper,
         path,
         node_index,
-        new$9
+        new$8
       );
-      let insert5 = insert4(new$9, node_index - moved_offset);
+      let insert5 = insert4(new$8, node_index - moved_offset);
       let changes$1 = prepend(insert5, changes);
       return new Diff(
         new Patch(patch_index, removed, changes$1, children),
         events$1
       );
-    } else if (old.atLeastLength(1) && new$9.atLeastLength(1) && old.head.key !== new$9.head.key) {
+    } else if (old.atLeastLength(1) && new$8.atLeastLength(1) && old.head.key !== new$8.head.key) {
       let prev = old.head;
       let old_remaining = old.tail;
-      let next = new$9.head;
-      let new_remaining = new$9.tail;
+      let next = new$8.head;
+      let new_remaining = new$8.tail;
       let next_did_exist = get(old_keyed, next.key);
       let prev_does_exist = get(new_keyed, prev.key);
       let prev_has_moved = contains(moved, prev.key);
       if (prev_does_exist.isOk() && next_did_exist.isOk() && prev_has_moved) {
         loop$old = old_remaining;
         loop$old_keyed = old_keyed;
-        loop$new = new$9;
+        loop$new = new$8;
         loop$new_keyed = new_keyed;
         loop$moved = moved;
         loop$moved_offset = moved_offset - advance(prev);
@@ -2640,7 +2654,7 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
         let moved_offset$1 = moved_offset + count;
         loop$old = prepend(match, old);
         loop$old_keyed = old_keyed;
-        loop$new = new$9;
+        loop$new = new$8;
         loop$new_keyed = new_keyed;
         loop$moved = moved$1;
         loop$moved_offset = moved_offset$1;
@@ -2660,7 +2674,7 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
         let changes$1 = prepend(remove3, changes);
         loop$old = old_remaining;
         loop$old_keyed = old_keyed;
-        loop$new = new$9;
+        loop$new = new$8;
         loop$new_keyed = new_keyed;
         loop$moved = moved;
         loop$moved_offset = moved_offset$1;
@@ -2716,11 +2730,11 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
         loop$mapper = mapper;
         loop$events = events$1;
       }
-    } else if (old.atLeastLength(1) && old.head instanceof Fragment && new$9.atLeastLength(1) && new$9.head instanceof Fragment) {
+    } else if (old.atLeastLength(1) && old.head instanceof Fragment && new$8.atLeastLength(1) && new$8.head instanceof Fragment) {
       let prev = old.head;
       let old$1 = old.tail;
-      let next = new$9.head;
-      let new$1 = new$9.tail;
+      let next = new$8.head;
+      let new$1 = new$8.tail;
       let node_index$1 = node_index + 1;
       let prev_count = prev.children_count;
       let next_count = next.children_count;
@@ -2765,11 +2779,11 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
       loop$children = child.patch.children;
       loop$mapper = mapper;
       loop$events = child.events;
-    } else if (old.atLeastLength(1) && old.head instanceof Element && new$9.atLeastLength(1) && new$9.head instanceof Element && (old.head.namespace === new$9.head.namespace && old.head.tag === new$9.head.tag)) {
+    } else if (old.atLeastLength(1) && old.head instanceof Element && new$8.atLeastLength(1) && new$8.head instanceof Element && (old.head.namespace === new$8.head.namespace && old.head.tag === new$8.head.tag)) {
       let prev = old.head;
       let old$1 = old.tail;
-      let next = new$9.head;
-      let new$1 = new$9.tail;
+      let next = new$8.head;
+      let new$1 = new$8.tail;
       let composed_mapper = compose_mapper(mapper, next.mapper);
       let child_path = add2(path, node_index, next.key);
       let controlled = is_controlled(
@@ -2836,11 +2850,11 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
       loop$children = children$1;
       loop$mapper = mapper;
       loop$events = child.events;
-    } else if (old.atLeastLength(1) && old.head instanceof Text && new$9.atLeastLength(1) && new$9.head instanceof Text && old.head.content === new$9.head.content) {
+    } else if (old.atLeastLength(1) && old.head instanceof Text && new$8.atLeastLength(1) && new$8.head instanceof Text && old.head.content === new$8.head.content) {
       let prev = old.head;
       let old$1 = old.tail;
-      let next = new$9.head;
-      let new$1 = new$9.tail;
+      let next = new$8.head;
+      let new$1 = new$8.tail;
       loop$old = old$1;
       loop$old_keyed = old_keyed;
       loop$new = new$1;
@@ -2855,11 +2869,11 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
       loop$children = children;
       loop$mapper = mapper;
       loop$events = events;
-    } else if (old.atLeastLength(1) && old.head instanceof Text && new$9.atLeastLength(1) && new$9.head instanceof Text) {
+    } else if (old.atLeastLength(1) && old.head instanceof Text && new$8.atLeastLength(1) && new$8.head instanceof Text) {
       let old$1 = old.tail;
-      let next = new$9.head;
-      let new$1 = new$9.tail;
-      let child = new$5(
+      let next = new$8.head;
+      let new$1 = new$8.tail;
+      let child = new$4(
         node_index,
         0,
         toList([replace_text(next.content)]),
@@ -2879,11 +2893,11 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
       loop$children = prepend(child, children);
       loop$mapper = mapper;
       loop$events = events;
-    } else if (old.atLeastLength(1) && old.head instanceof UnsafeInnerHtml && new$9.atLeastLength(1) && new$9.head instanceof UnsafeInnerHtml) {
+    } else if (old.atLeastLength(1) && old.head instanceof UnsafeInnerHtml && new$8.atLeastLength(1) && new$8.head instanceof UnsafeInnerHtml) {
       let prev = old.head;
       let old$1 = old.tail;
-      let next = new$9.head;
-      let new$1 = new$9.tail;
+      let next = new$8.head;
+      let new$1 = new$8.tail;
       let composed_mapper = compose_mapper(mapper, next.mapper);
       let child_path = add2(path, node_index, next.key);
       let $ = diff_attributes(
@@ -2922,7 +2936,7 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
         _block$2 = children;
       } else {
         _block$2 = prepend(
-          new$5(node_index, 0, child_changes$1, toList([])),
+          new$4(node_index, 0, child_changes$1, toList([])),
           children
         );
       }
@@ -2944,8 +2958,8 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
     } else {
       let prev = old.head;
       let old_remaining = old.tail;
-      let next = new$9.head;
-      let new_remaining = new$9.tail;
+      let next = new$8.head;
+      let new_remaining = new$8.tail;
       let prev_count = advance(prev);
       let next_count = advance(next);
       let change = replace2(node_index - moved_offset, prev_count, next);
@@ -2971,11 +2985,11 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
     }
   }
 }
-function diff(events, old, new$9) {
+function diff(events, old, new$8) {
   return do_diff(
     toList([old]),
     empty2(),
-    toList([new$9]),
+    toList([new$8]),
     empty2(),
     empty_set(),
     0,
@@ -3506,7 +3520,7 @@ var Runtime = class {
       }
     });
     this.#vdom = virtualise(this.root);
-    this.#events = new$6();
+    this.#events = new$5();
     this.#shouldFlush = true;
     this.#tick(effects);
   }
@@ -3631,7 +3645,7 @@ var Events = class extends CustomType {
     this.next_dispatched_paths = next_dispatched_paths;
   }
 };
-function new$6() {
+function new$5() {
   return new Events(
     empty2(),
     empty_list,
@@ -3975,7 +3989,7 @@ var Config2 = class extends CustomType {
     this.on_form_restore = on_form_restore;
   }
 };
-function new$7(options) {
+function new$6(options) {
   let init2 = new Config2(
     false,
     true,
@@ -4049,7 +4063,7 @@ var ElementNotFound = class extends CustomType {
 var NotABrowser = class extends CustomType {
 };
 function application(init2, update3, view2) {
-  return new App(init2, update3, view2, new$7(empty_list));
+  return new App(init2, update3, view2, new$6(empty_list));
 }
 function simple(init2, update3, view2) {
   let init$1 = (start_args) => {
@@ -4072,50 +4086,52 @@ function start3(app, selector, start_args) {
 
 // build/dev/javascript/moonbag_gleam/newtypes.mjs
 var Player = class extends CustomType {
-  constructor(health, points, credits, orbs, curses) {
+  constructor(health, points, credits, orb_bag, curses) {
     super();
     this.health = health;
     this.points = points;
     this.credits = credits;
-    this.orbs = orbs;
+    this.orb_bag = orb_bag;
     this.curses = curses;
   }
 };
 var Health = class extends CustomType {
-  constructor(x0) {
+  constructor(value) {
     super();
-    this[0] = x0;
+    this.value = value;
   }
 };
 var Points = class extends CustomType {
-  constructor(x0) {
+  constructor(value) {
     super();
-    this[0] = x0;
+    this.value = value;
   }
 };
 var Credits = class extends CustomType {
-  constructor(x0) {
+  constructor(value) {
     super();
-    this[0] = x0;
+    this.value = value;
   }
 };
-var Orbs = class extends CustomType {
+var OrbBag = class extends CustomType {
   constructor(orbs) {
     super();
     this.orbs = orbs;
   }
 };
-var Point = class extends CustomType {
+var PointOrb = class extends CustomType {
   constructor(x0) {
     super();
     this[0] = x0;
   }
 };
-var Bomb = class extends CustomType {
+var BombOrb = class extends CustomType {
   constructor(x0) {
     super();
     this[0] = x0;
   }
+};
+var EmptyOrb = class extends CustomType {
 };
 var Curses = class extends CustomType {
   constructor(curses) {
@@ -4140,16 +4156,22 @@ var Level = class extends CustomType {
   }
 };
 var Game = class extends CustomType {
-  constructor(player, market, level) {
+  constructor(player, level, market2) {
     super();
     this.player = player;
-    this.market = market;
     this.level = level;
+    this.market = market2;
   }
 };
 var HomeView = class extends CustomType {
 };
 var GameView = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
+var MarketView = class extends CustomType {
   constructor(x0) {
     super();
     this[0] = x0;
@@ -4169,34 +4191,35 @@ var LoseView = class extends CustomType {
 };
 var PlayerStartGame = class extends CustomType {
 };
-var PlayerNextLevel = class extends CustomType {
+var PlayerPullOrb = class extends CustomType {
 };
-var TestWinView = class extends CustomType {
+var PlayerVisitMarket = class extends CustomType {
+};
+var PlayerNextRound = class extends CustomType {
 };
 function build_orb(orb_type, times) {
   return repeat(orb_type, times);
 }
 function init_orbs() {
-  let _pipe = fold(
-    toList([
-      build_orb(new Point(1), 4),
-      build_orb(new Point(2), 3),
-      build_orb(new Point(3), 2),
-      build_orb(new Bomb(1), 3),
-      build_orb(new Bomb(2), 2)
-    ]),
-    new$(),
-    append
-  );
-  return new Orbs(_pipe);
+  let _pipe = toList([
+    build_orb(new PointOrb(1), 4),
+    build_orb(new PointOrb(2), 3),
+    build_orb(new PointOrb(3), 2),
+    build_orb(new BombOrb(1), 3),
+    build_orb(new BombOrb(2), 2)
+  ]);
+  return flatten(_pipe);
 }
 function init_player() {
   let health = new Health(5);
   let points = new Points(0);
   let credits = new Credits(0);
-  let orbs = init_orbs();
+  let _block;
+  let _pipe = init_orbs();
+  _block = new OrbBag(_pipe);
+  let orb_bag = _block;
   let curses = new Curses(toList([new NothingCurse()]));
-  return new Player(health, points, credits, orbs, curses);
+  return new Player(health, points, credits, orb_bag, curses);
 }
 function init_market() {
   return new Market(toList([]));
@@ -4206,16 +4229,126 @@ function init_level() {
 }
 function init_game() {
   let player = init_player();
-  let market = init_market();
+  let market2 = init_market();
   let level = init_level();
-  return new Game(player, market, level);
+  return new Game(player, level, market2);
+}
+function handle_game_state_transitions(game2) {
+  let player = game2.player;
+  let orb_bag = player.orb_bag.orbs;
+  let _block;
+  if (orb_bag.hasLength(0)) {
+    _block = [new EmptyOrb(), toList([])];
+  } else {
+    let first = orb_bag.head;
+    let rest = orb_bag.tail;
+    _block = [first, rest];
+  }
+  let $ = _block;
+  let orb_pull = $[0];
+  let new_orb_bag = $[1];
+  let _block$1;
+  if (orb_pull instanceof BombOrb) {
+    let damage = orb_pull[0];
+    _block$1 = [player.health.value - damage, player.points.value];
+  } else if (orb_pull instanceof PointOrb) {
+    let points2 = orb_pull[0];
+    _block$1 = [player.health.value, player.points.value + points2];
+  } else {
+    _block$1 = [player.health.value, player.points.value];
+  }
+  let $1 = _block$1;
+  let health = $1[0];
+  let points = $1[1];
+  let _block$2;
+  let _record = player;
+  _block$2 = new Player(
+    new Health(health),
+    new Points(points),
+    _record.credits,
+    new OrbBag(new_orb_bag),
+    _record.curses
+  );
+  let new_player = _block$2;
+  let _block$3;
+  let _record$1 = game2;
+  _block$3 = new Game(new_player, _record$1.level, _record$1.market);
+  let new_game = _block$3;
+  return new_game;
+}
+function handle_frontend_view_transitions(game2) {
+  let player = game2.player;
+  let level = game2.level;
+  let health = player.health.value;
+  let points = player.points.value;
+  let milestone = level.milestone.value;
+  let _block;
+  let $ = health <= 0;
+  if (!$) {
+    let $1 = points >= milestone;
+    if (!$1) {
+      _block = (var0) => {
+        return new GameView(var0);
+      };
+    } else {
+      _block = (var0) => {
+        return new WinView(var0);
+      };
+    }
+  } else {
+    _block = (var0) => {
+      return new LoseView(var0);
+    };
+  }
+  let _pipe = game2;
+  return _block(_pipe);
+}
+function update_credits(game2) {
+  let player = game2.player;
+  let new_credits = player.points.value + player.credits.value;
+  let _block;
+  let _record = player;
+  _block = new Player(
+    _record.health,
+    _record.points,
+    new Credits(new_credits),
+    _record.orb_bag,
+    _record.curses
+  );
+  let player$1 = _block;
+  let _record$1 = game2;
+  return new Game(player$1, _record$1.level, _record$1.market);
+}
+function reset_for_next_round(game2) {
+  let player = game2.player;
+  let level = game2.level;
+  let _block;
+  let _record = init_player();
+  _block = new Player(
+    _record.health,
+    _record.points,
+    player.credits,
+    _record.orb_bag,
+    player.curses
+  );
+  let player$1 = _block;
+  let _block$1;
+  let _record$1 = level;
+  _block$1 = new Level(
+    level.current_level + 1,
+    _record$1.current_round,
+    new Points(level.milestone.value + 5)
+  );
+  let level$1 = _block$1;
+  let _record$2 = game2;
+  return new Game(player$1, level$1, _record$2.market);
 }
 function health_to_string(health) {
-  let value = health[0];
+  let value = health.value;
   return "Health(" + to_string(value) + ")";
 }
 function credits_to_string(credits) {
-  let value = credits[0];
+  let value = credits.value;
   return "Credits(" + to_string(value) + ")";
 }
 
@@ -4335,9 +4468,9 @@ function game(game2) {
   let player = game2.player;
   let level = game2.level;
   let $ = player.points;
-  let points = $[0];
+  let points = $.value;
   let $1 = level.milestone;
-  let milestone = $1[0];
+  let milestone = $1.value;
   return div(
     toList([class$("border border-white")]),
     toList([
@@ -4378,7 +4511,8 @@ function game(game2) {
                 ])
               )
             ])
-          )
+          ),
+          clean_button(new PlayerPullOrb(), "Pull Orb")
         ])
       )
     ])
@@ -4392,16 +4526,62 @@ function win() {
       )
     ]),
     toList([
-      h1(toList([]), toList([text3("YOU WON! ONTO THE NEXT ROUND")])),
+      h1(toList([]), toList([text3("YOU WON!")])),
       div(
         toList([class$("flex flex-row gap-2")]),
         toList([
-          clean_button(new TestWinView(), "Win View"),
-          clean_button(new PlayerNextLevel(), "Lose View"),
-          clean_button(new PlayerNextLevel(), "Market View")
+          clean_button(
+            new PlayerVisitMarket(),
+            "Visit the Market"
+          )
         ])
       )
     ])
+  );
+}
+function lose() {
+  return div(
+    toList([
+      class$(
+        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4"
+      )
+    ]),
+    toList([
+      h1(toList([]), toList([text3("YOU LOSE!")])),
+      div(
+        toList([class$("flex flex-row gap-2")]),
+        toList([clean_button(new PlayerStartGame(), "Restart")])
+      )
+    ])
+  );
+}
+function market(game2) {
+  return div(
+    toList([class$("border border-white")]),
+    toList([
+      nav_bar_view(game2.player),
+      div(
+        toList([
+          class$(
+            "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4"
+          )
+        ]),
+        toList([
+          h1(toList([]), toList([text3("Market View")])),
+          clean_button(new PlayerNextRound(), "Next Round")
+        ])
+      )
+    ])
+  );
+}
+function error() {
+  return div(
+    toList([
+      class$(
+        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4 text-4xl"
+      )
+    ]),
+    toList([h1(toList([]), toList([text3("404 ERROR")]))])
   );
 }
 
@@ -4412,9 +4592,23 @@ function init(_) {
 function update2(model, msg) {
   if (model instanceof HomeView && msg instanceof PlayerStartGame) {
     return new GameView(init_game());
-  } else if (model instanceof GameView && msg instanceof TestWinView) {
+  } else if (model instanceof LoseView && msg instanceof PlayerStartGame) {
+    return new GameView(init_game());
+  } else if (model instanceof GameView && msg instanceof PlayerPullOrb) {
     let game2 = model[0];
-    return new WinView(game2);
+    let _pipe = game2;
+    let _pipe$1 = handle_game_state_transitions(_pipe);
+    return handle_frontend_view_transitions(_pipe$1);
+  } else if (model instanceof WinView && msg instanceof PlayerVisitMarket) {
+    let game2 = model[0];
+    let _pipe = game2;
+    let _pipe$1 = update_credits(_pipe);
+    let _pipe$2 = reset_for_next_round(_pipe$1);
+    return new MarketView(_pipe$2);
+  } else if (model instanceof MarketView && msg instanceof PlayerNextRound) {
+    let game2 = model[0];
+    let _pipe = game2;
+    return new GameView(_pipe);
   } else {
     return new HomeView();
   }
@@ -4428,9 +4622,12 @@ function view(model) {
   } else if (model instanceof WinView) {
     return win();
   } else if (model instanceof LoseView) {
-    return home();
+    return lose();
+  } else if (model instanceof MarketView) {
+    let game2 = model[0];
+    return market(game2);
   } else {
-    return home();
+    return error();
   }
 }
 function main() {

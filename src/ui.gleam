@@ -1,9 +1,8 @@
-import gleam/int
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
 import lustre/event
-import newtypes.{type Msg, type Player, Player, Points}
+import newtypes.{type Msg, type Player, Player}
 
 pub fn clean_button(msg: Msg, title: String) -> Element(Msg) {
   html.button(

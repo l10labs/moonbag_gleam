@@ -3,8 +3,8 @@
 import lustre
 import lustre/element.{type Element}
 import newtypes.{
-  type FrontendViews, type Msg, GameView, HomeView, LoseView, MarketView,
-  PlayerStartGame, WinView,
+  type FrontendViews, type Msg, ErrorView, GameView, HomeView, LoseView,
+  MarketView, WinView,
 }
 import views
 
@@ -39,8 +39,18 @@ fn init(_) -> Model {
 ///
 fn update(model: Model, msg: Msg) -> Model {
   case model, msg {
-    HomeView, PlayerStartGame -> GameView(newtypes.init_game())
-    GameView(game), newtypes.TestWinView -> WinView(game)
+    HomeView, newtypes.PlayerStartGame -> GameView(newtypes.init_game())
+    LoseView(_), newtypes.PlayerStartGame -> GameView(newtypes.init_game())
+    GameView(game), newtypes.PlayerPullOrb ->
+      game
+      |> newtypes.handle_game_state_transitions
+      |> newtypes.handle_frontend_view_transitions
+    WinView(game), newtypes.PlayerVisitMarket ->
+      game
+      |> newtypes.update_credits
+      |> newtypes.reset_for_next_round
+      |> MarketView
+    MarketView(game), newtypes.PlayerNextRound -> game |> GameView
     _, _ -> HomeView
   }
   // case model, msg {
@@ -64,8 +74,9 @@ fn view(model: Model) -> Element(Msg) {
     HomeView -> views.home()
     GameView(game) -> views.game(game)
     WinView(_) -> views.win()
-    LoseView(_) -> views.home()
-    MarketView(_) -> views.home()
+    LoseView(_) -> views.lose()
+    MarketView(game) -> views.market(game)
+    ErrorView -> views.error()
   }
   // case model {
   //   HomePage -> views.home_screen_view()

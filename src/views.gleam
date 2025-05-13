@@ -32,7 +32,7 @@ pub fn home() -> Element(Msg) {
 }
 
 pub fn game(game: Game) -> Element(Msg) {
-  let Game(player, _, level) = game
+  let Game(player, level, _) = game
   let Points(points) = player.points
   let Points(milestone) = level.milestone
 
@@ -56,6 +56,7 @@ pub fn game(game: Game) -> Element(Msg) {
             ui.square_view(milestone |> int.to_string),
           ]),
         ]),
+        ui.clean_button(newtypes.PlayerPullOrb, "Pull Orb"),
         // html.div([attribute.class("flex flex-row gap-2")], [
       //   ui.clean_button(newtypes.TestWinView, "Win View"),
       //   ui.clean_button(newtypes.PlayerNextLevel, "Lose View"),
@@ -74,12 +75,69 @@ pub fn win() -> Element(Msg) {
       ),
     ],
     [
-      html.h1([], [html.text("YOU WON! ONTO THE NEXT ROUND")]),
+      html.h1([], [html.text("YOU WON!")]),
       html.div([attribute.class("flex flex-row gap-2")], [
-        ui.clean_button(newtypes.TestWinView, "Win View"),
-        ui.clean_button(newtypes.PlayerNextLevel, "Lose View"),
-        ui.clean_button(newtypes.PlayerNextLevel, "Market View"),
+        ui.clean_button(newtypes.PlayerVisitMarket, "Visit the Market"),
       ]),
     ],
+  )
+}
+
+pub fn lose() -> Element(Msg) {
+  html.div(
+    [
+      attribute.class(
+        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4",
+      ),
+    ],
+    [
+      html.h1([], [html.text("YOU LOSE!")]),
+      html.div([attribute.class("flex flex-row gap-2")], [
+        ui.clean_button(newtypes.PlayerStartGame, "Restart"),
+      ]),
+    ],
+  )
+}
+
+pub fn market(game: Game) -> Element(Msg) {
+  html.div([attribute.class("border border-white")], [
+    ui.nav_bar_view(game.player),
+    html.div(
+      [
+        attribute.class(
+          "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4",
+        ),
+      ],
+      [
+        html.h1([], [html.text("Market View")]),
+        // html.div([attribute.class("flex flex-row p-4")], [
+        //   html.div([], [
+        //     html.text("Points"),
+        //     ui.square_view(points |> int.to_string),
+        //   ]),
+        //   html.div([], [
+        //     html.text("Milestone"),
+        //     ui.square_view(milestone |> int.to_string),
+        //   ]),
+        // ]),
+        ui.clean_button(newtypes.PlayerNextRound, "Next Round"),
+        // html.div([attribute.class("flex flex-row gap-2")], [
+      //   ui.clean_button(newtypes.TestWinView, "Win View"),
+      //   ui.clean_button(newtypes.PlayerNextLevel, "Lose View"),
+      //   ui.clean_button(newtypes.PlayerNextLevel, "Market View"),
+      // ]),
+      ],
+    ),
+  ])
+}
+
+pub fn error() -> Element(Msg) {
+  html.div(
+    [
+      attribute.class(
+        "min-h-screen flex flex-col items-center justify-center bg-black text-white p-4 text-4xl",
+      ),
+    ],
+    [html.h1([], [html.text("404 ERROR")])],
   )
 }
