@@ -4485,7 +4485,7 @@ function update_view(game2) {
   let _pipe = game2;
   return _block(_pipe);
 }
-function update_credits(game2) {
+function reward_credits(game2) {
   let player = game2.player;
   let new_credits = player.points.value + player.credits.value;
   let _block;
@@ -4530,60 +4530,80 @@ function reset_for_next_round(game2) {
   let _record$1 = game2;
   return new Game(player$1, level$1, _record$1.market);
 }
-function buy_orb(game2, item_with_key) {
-  let player = game2.player;
-  let market2 = game2.market;
-  let key = item_with_key[0];
-  let item = item_with_key[1];
-  let price = item.price;
+function deduct_credits_for_item(game2, item) {
+  let credits = game2.player.credits.value - item.price.value;
   let _block;
-  let $1 = player.credits.value >= price.value;
-  if (!$1) {
-    _block = [player.credits.value, market2.items, new None()];
-  } else {
-    let _block$12;
-    let $3 = (() => {
-      let _pipe = market2.items;
-      return key_pop(_pipe, key);
-    })();
-    if (!$3.isOk()) {
-      _block$12 = [market2.items, new None()];
-    } else {
-      let player_purchased_item = $3[0][0];
-      let new_items2 = $3[0][1];
-      _block$12 = [new_items2, new Some(player_purchased_item)];
-    }
-    let $2 = _block$12;
-    let new_market_items = $2[0];
-    let player_item = $2[1];
-    _block = [player.credits.value - price.value, new_market_items, player_item];
-  }
-  let $ = _block;
-  let credits = $[0];
-  let new_items = $[1];
-  let player_new_item = $[2];
-  let _block$1;
-  if (player_new_item instanceof None) {
-    _block$1 = player.purchased_orbs.orbs;
-  } else {
-    let new_orb = player_new_item[0];
-    let _pipe = player.purchased_orbs.orbs;
-    _block$1 = prepend2(_pipe, new_orb.item);
-  }
-  let player_orb_list = _block$1;
-  let _block$2;
-  let _record = player;
-  _block$2 = new Player(
+  let _record = game2.player;
+  _block = new Player(
     _record.health,
     _record.points,
     new Credits(credits),
     _record.starter_orbs,
-    new OrbBag(player_orb_list),
+    _record.purchased_orbs,
     _record.curses
   );
-  let player$1 = _block$2;
+  let player = _block;
   let _record$1 = game2;
-  return new Game(player$1, _record$1.level, new Market(new_items));
+  return new Game(player, _record$1.level, _record$1.market);
+}
+function add_new_item_to_player(game2, item) {
+  let _block;
+  let _pipe = game2.player.purchased_orbs.orbs;
+  let _pipe$1 = prepend2(_pipe, item.item);
+  _block = new OrbBag(_pipe$1);
+  let purchased_orbs = _block;
+  let _block$1;
+  let _record = game2.player;
+  _block$1 = new Player(
+    _record.health,
+    _record.points,
+    _record.credits,
+    _record.starter_orbs,
+    purchased_orbs,
+    _record.curses
+  );
+  let player = _block$1;
+  let _record$1 = game2;
+  return new Game(player, _record$1.level, _record$1.market);
+}
+function remove_item_from_market(game2, keyed_item) {
+  let _block;
+  let _pipe = game2.market.items;
+  _block = key_pop(_pipe, keyed_item[0]);
+  let market_list = _block;
+  if (!market_list.isOk()) {
+    return new None();
+  } else {
+    let new_list = market_list[0][1];
+    return new Some(
+      (() => {
+        let _record = game2;
+        return new Game(_record.player, _record.level, new Market(new_list));
+      })()
+    );
+  }
+}
+function check_credits(game2, item) {
+  return game2.player.credits.value >= item.price.value;
+}
+function buy_market_item(game2, keyed_item) {
+  let _block;
+  let $ = check_credits(game2, keyed_item[1]);
+  if (!$) {
+    _block = new None();
+  } else {
+    let _pipe = game2;
+    let _pipe$1 = deduct_credits_for_item(_pipe, keyed_item[1]);
+    let _pipe$2 = add_new_item_to_player(_pipe$1, keyed_item[1]);
+    _block = remove_item_from_market(_pipe$2, keyed_item);
+  }
+  let updated_game = _block;
+  if (updated_game instanceof None) {
+    return game2;
+  } else {
+    let new_game = updated_game[0];
+    return new_game;
+  }
 }
 
 // build/dev/javascript/moonbag_gleam/msg.mjs
@@ -5047,12 +5067,12 @@ function update2(model, message) {
   } else if (model instanceof WinView && message instanceof PlayerVisitMarket) {
     let game2 = model[0];
     let _pipe = game2;
-    let _pipe$1 = update_credits(_pipe);
+    let _pipe$1 = reward_credits(_pipe);
     return new MarketView(_pipe$1);
   } else if (model instanceof MarketView && message instanceof PlayerBuyItem) {
     let game2 = model[0];
     let item = message[0];
-    let _pipe = buy_orb(game2, item);
+    let _pipe = buy_market_item(game2, item);
     return new MarketView(_pipe);
   } else if (model instanceof MarketView && message instanceof PlayerNextRound) {
     let game2 = model[0];

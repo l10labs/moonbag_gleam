@@ -1,5 +1,5 @@
 import gleam/list
-import gleam/option
+import gleam/option.{type Option}
 
 pub type Player {
   Player(
@@ -79,7 +79,7 @@ pub fn init_player() -> Player {
   )
 }
 
-pub fn init_starter_orbs() -> List(Orb) {
+fn init_starter_orbs() -> List(Orb) {
   [
     build_orb(PointOrb(1), times: 4),
     build_orb(PointOrb(2), times: 3),
@@ -90,11 +90,11 @@ pub fn init_starter_orbs() -> List(Orb) {
   |> list.flatten
 }
 
-pub fn build_orb(orb_type: Orb, times times: Int) -> List(Orb) {
+fn build_orb(orb_type: Orb, times times: Int) -> List(Orb) {
   list.repeat(orb_type, times)
 }
 
-pub fn init_market_items() -> List(MarketItem) {
+fn init_market_items() -> List(MarketItem) {
   [
     build_market_item(PointOrb(1), price: 2, times: 4),
     build_market_item(PointOrb(2), price: 5, times: 3),
@@ -105,7 +105,7 @@ pub fn init_market_items() -> List(MarketItem) {
   |> list.flatten
 }
 
-pub fn build_market_item(
+fn build_market_item(
   item: Orb,
   price price: Int,
   times times: Int,
@@ -114,11 +114,11 @@ pub fn build_market_item(
   |> list.map(MarketItem(_, Credits(price)))
 }
 
-pub fn init_market() -> Market {
+fn init_market() -> Market {
   init_market_items() |> list.index_map(fn(x, i) { #(i, x) }) |> Market
 }
 
-pub fn init_level() -> Level {
+fn init_level() -> Level {
   Level(current_level: 1, current_round: 1, milestone: Points(10))
 }
 
@@ -126,21 +126,21 @@ pub fn init_game() -> Game {
   Game(player: init_player(), market: init_market(), level: init_level())
 }
 
-pub fn get_first_orb(orb_list: List(Orb)) -> Orb {
+fn get_first_orb(orb_list: List(Orb)) -> Orb {
   case orb_list {
     [] -> EmptyOrb
     [first, ..] -> first
   }
 }
 
-pub fn get_remaining_orb_list(orb_list: List(Orb)) -> List(Orb) {
+fn get_remaining_orb_list(orb_list: List(Orb)) -> List(Orb) {
   case orb_list {
     [] -> []
     [_, ..rest] -> rest
   }
 }
 
-pub fn resolve_player_orb_pull(player: Player, orb: Orb) -> Player {
+fn resolve_player_orb_pull(player: Player, orb: Orb) -> Player {
   let #(health, points) = case orb {
     BombOrb(damage) -> #(player.health.value - damage, player.points.value)
     PointOrb(points) -> #(player.health.value, player.points.value + points)
@@ -150,10 +150,7 @@ pub fn resolve_player_orb_pull(player: Player, orb: Orb) -> Player {
   Player(..player, health: Health(health), points: Points(points))
 }
 
-pub fn update_player_starter_orbs(
-  player: Player,
-  new_orb_list: List(Orb),
-) -> Player {
+fn update_player_starter_orbs(player: Player, new_orb_list: List(Orb)) -> Player {
   Player(..player, starter_orbs: new_orb_list |> OrbBag)
 }
 
@@ -187,7 +184,7 @@ pub fn update_view(game: Game) -> FrontendViews {
   }
 }
 
-pub fn update_credits(game: Game) -> Game {
+pub fn reward_credits(game: Game) -> Game {
   let Game(player, _, _) = game
   let new_credits = player.points.value + player.credits.value
   let player = Player(..player, credits: Credits(value: new_credits))
@@ -223,41 +220,51 @@ pub fn reset_for_next_round(game: Game) -> Game {
   Game(..game, player:, level:)
 }
 
-pub fn buy_orb(game: Game, item_with_key: #(Int, MarketItem)) -> Game {
-  let Game(player, _, market) = game
-  let #(key, item) = item_with_key
-  let MarketItem(_, price) = item
-
-  let #(credits, new_items, player_new_item) = case
-    player.credits.value >= price.value
-  {
-    False -> #(player.credits.value, market.items, option.None)
+pub fn buy_market_item(game: Game, keyed_item: #(Int, MarketItem)) -> Game {
+  let updated_game = case check_credits(game, keyed_item.1) {
+    False -> option.None
     True -> {
-      let #(new_market_items, player_item) = case
-        market.items |> list.key_pop(key)
-      {
-        Error(_) -> #(market.items, option.None)
-        Ok(#(player_purchased_item, new_items)) -> #(
-          new_items,
-          option.Some(player_purchased_item),
-        )
-      }
-      #(player.credits.value - price.value, new_market_items, player_item)
+      game
+      |> deduct_credits_for_item(keyed_item.1)
+      |> add_new_item_to_player(keyed_item.1)
+      |> remove_item_from_market(keyed_item)
     }
   }
 
-  let player_orb_list = case player_new_item {
-    option.None -> player.purchased_orbs.orbs
-    option.Some(new_orb) ->
-      player.purchased_orbs.orbs |> list.prepend(new_orb.item)
+  case updated_game {
+    option.None -> game
+    option.Some(new_game) -> new_game
   }
+}
 
-  let player =
-    Player(
-      ..player,
-      credits: Credits(credits),
-      purchased_orbs: OrbBag(player_orb_list),
-    )
+fn deduct_credits_for_item(game: Game, item: MarketItem) -> Game {
+  let credits = game.player.credits.value - item.price.value
+  let player = Player(..game.player, credits: Credits(credits))
 
-  Game(..game, player:, market: Market(items: new_items))
+  Game(..game, player:)
+}
+
+fn add_new_item_to_player(game: Game, item: MarketItem) -> Game {
+  let purchased_orbs =
+    game.player.purchased_orbs.orbs |> list.prepend(item.item) |> OrbBag
+  let player = Player(..game.player, purchased_orbs:)
+
+  Game(..game, player:)
+}
+
+fn remove_item_from_market(
+  game: Game,
+  keyed_item: #(Int, MarketItem),
+) -> Option(Game) {
+  let market_list = game.market.items |> list.key_pop(keyed_item.0)
+  case market_list {
+    Error(_) -> option.None
+    Ok(#(_, new_list)) -> {
+      option.Some(Game(..game, market: Market(items: new_list)))
+    }
+  }
+}
+
+fn check_credits(game: Game, item: MarketItem) -> Bool {
+  game.player.credits.value >= item.price.value
 }
