@@ -4320,6 +4320,8 @@ var LoseView = class extends CustomType {
     this[0] = x0;
   }
 };
+var ErrorView = class extends CustomType {
+};
 function build_orb(orb_type, times) {
   return repeat(orb_type, times);
 }
@@ -4997,33 +4999,35 @@ function error() {
 function init(_) {
   return new HomeView();
 }
-function update2(model, msg) {
-  if (model instanceof HomeView && msg instanceof PlayerStartGame) {
-    return new GameView(init_game());
-  } else if (model instanceof LoseView && msg instanceof PlayerStartGame) {
-    return new GameView(init_game());
-  } else if (model instanceof GameView && msg instanceof PlayerPullOrb) {
+function update2(model, message) {
+  if (model instanceof HomeView && message instanceof PlayerStartGame) {
+    let _pipe = init_game();
+    return new GameView(_pipe);
+  } else if (model instanceof LoseView && message instanceof PlayerStartGame) {
+    let _pipe = init_game();
+    return new GameView(_pipe);
+  } else if (model instanceof GameView && message instanceof PlayerPullOrb) {
     let game2 = model[0];
     let _pipe = game2;
     let _pipe$1 = handle_game_state_transitions(_pipe);
     return handle_frontend_view_transitions(_pipe$1);
-  } else if (model instanceof WinView && msg instanceof PlayerVisitMarket) {
+  } else if (model instanceof WinView && message instanceof PlayerVisitMarket) {
     let game2 = model[0];
     let _pipe = game2;
     let _pipe$1 = update_credits(_pipe);
     return new MarketView(_pipe$1);
-  } else if (model instanceof MarketView && msg instanceof PlayerBuyItem) {
+  } else if (model instanceof MarketView && message instanceof PlayerBuyItem) {
     let game2 = model[0];
-    let item = msg[0];
+    let item = message[0];
     let _pipe = buy_orb(game2, item);
     return new MarketView(_pipe);
-  } else if (model instanceof MarketView && msg instanceof PlayerNextRound) {
+  } else if (model instanceof MarketView && message instanceof PlayerNextRound) {
     let game2 = model[0];
     let _pipe = game2;
     let _pipe$1 = reset_for_next_round(_pipe);
     return new GameView(_pipe$1);
   } else {
-    return new HomeView();
+    return new ErrorView();
   }
 }
 function view(model) {
@@ -5031,14 +5035,16 @@ function view(model) {
     return home();
   } else if (model instanceof GameView) {
     let game2 = model[0];
-    return game(game2);
+    let _pipe = game2;
+    return game(_pipe);
   } else if (model instanceof WinView) {
     return win();
   } else if (model instanceof LoseView) {
     return lose();
   } else if (model instanceof MarketView) {
     let game2 = model[0];
-    return market(game2);
+    let _pipe = game2;
+    return market(_pipe);
   } else {
     return error();
   }
@@ -5050,7 +5056,7 @@ function main2() {
     throw makeError(
       "let_assert",
       "moonbag_gleam",
-      12,
+      15,
       "main",
       "Pattern match failed, no pattern matched the value.",
       { value: $ }
