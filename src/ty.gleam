@@ -1,7 +1,5 @@
-import gleam/int
 import gleam/list
 import gleam/option
-import gleam/string
 
 pub type Player {
   Player(
@@ -248,88 +246,4 @@ pub fn buy_orb(game: Game, item_with_key: #(Int, MarketItem)) -> Game {
     )
 
   Game(..game, player:, market: Market(items: new_items))
-}
-
-pub fn health_to_string(health: Health) -> String {
-  let Health(value) = health
-  "Health(" <> int.to_string(value) <> ")"
-}
-
-pub fn points_to_string(points: Points) -> String {
-  let Points(value) = points
-  "Points(" <> int.to_string(value) <> ")"
-}
-
-pub fn credits_to_string(credits: Credits) -> String {
-  let Credits(value) = credits
-  "Credits(" <> int.to_string(value) <> ")"
-}
-
-pub fn orb_to_string(orb: Orb) -> String {
-  case orb {
-    PointOrb(value) -> "Orb.Point(" <> int.to_string(value) <> ")"
-    BombOrb(value) -> "Orb.Bomb(" <> int.to_string(value) <> ")"
-    EmptyOrb -> "Empty Orb"
-  }
-}
-
-pub fn orbs_to_string(orbs: OrbBag) -> String {
-  let OrbBag(orb_list) = orbs
-  let item_strings = list.map(orb_list, orb_to_string)
-  "Orbs([" <> string.join(item_strings, ", ") <> "])"
-}
-
-pub fn curse_to_string(_curse: Curse) -> String {
-  "Curse"
-}
-
-pub fn curses_to_string(curses: Curses) -> String {
-  let Curses(curse_list) = curses
-  let item_strings = list.map(curse_list, curse_to_string)
-  "Curses([" <> string.join(item_strings, ", ") <> "])"
-}
-
-pub fn market_item_to_string(market_item: MarketItem) -> String {
-  let MarketItem(item, price) = market_item
-  "MarketItem(item: "
-  <> orb_to_string(item)
-  <> ", price: "
-  <> credits_to_string(price)
-  <> ")"
-}
-
-pub fn level_to_string(level: Level) -> String {
-  let Level(current_level, current_round, milestone) = level
-  "Level(current_level: "
-  <> int.to_string(current_level)
-  <> ", current_round: "
-  <> int.to_string(current_round)
-  <> ", milestone: "
-  <> points_to_string(milestone)
-  <> ")"
-}
-
-pub fn player_to_string(player: Player) -> String {
-  let Player(health, points, credits, orbs, _, curses) = player
-  "Player(health: "
-  <> health_to_string(health)
-  <> ", points: "
-  <> points_to_string(points)
-  <> ", credits: "
-  <> credits_to_string(credits)
-  <> ", orbs: "
-  <> orbs_to_string(orbs)
-  <> ", curses: "
-  <> curses_to_string(curses)
-  <> ")"
-}
-
-pub fn game_to_string(game: Game) -> String {
-  let Game(player, level, _) = game
-  "Game(player: "
-  <> player_to_string(player)
-  <> ", market: "
-  <> ", level: "
-  <> level_to_string(level)
-  <> ")"
 }
