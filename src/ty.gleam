@@ -197,21 +197,25 @@ pub fn update_credits(game: Game) -> Game {
 
 pub fn reset_for_next_round(game: Game) -> Game {
   let Game(player, level, _) = game
+  let init_player = init_player()
+
   let starter_orbs =
     player.purchased_orbs.orbs
-    |> list.append(init_player().starter_orbs.orbs)
+    |> list.append(init_player.starter_orbs.orbs)
     |> OrbBag
+
   let player =
     Player(
-      ..init_player(),
+      ..init_player,
       credits: player.credits,
       starter_orbs:,
       purchased_orbs: player.purchased_orbs,
       curses: player.curses,
     )
+
   let level =
     Level(
-      ..level,
+      current_round: 1,
       current_level: level.current_level + 1,
       milestone: Points(level.milestone.value + 5),
     )

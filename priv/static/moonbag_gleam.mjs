@@ -4505,13 +4505,14 @@ function update_credits(game2) {
 function reset_for_next_round(game2) {
   let player = game2.player;
   let level = game2.level;
+  let init_player$1 = init_player();
   let _block;
   let _pipe = player.purchased_orbs.orbs;
-  let _pipe$1 = append(_pipe, init_player().starter_orbs.orbs);
+  let _pipe$1 = append(_pipe, init_player$1.starter_orbs.orbs);
   _block = new OrbBag(_pipe$1);
   let starter_orbs = _block;
   let _block$1;
-  let _record = init_player();
+  let _record = init_player$1;
   _block$1 = new Player(
     _record.health,
     _record.points,
@@ -4521,16 +4522,13 @@ function reset_for_next_round(game2) {
     player.curses
   );
   let player$1 = _block$1;
-  let _block$2;
-  let _record$1 = level;
-  _block$2 = new Level(
+  let level$1 = new Level(
     level.current_level + 1,
-    _record$1.current_round,
+    1,
     new Points(level.milestone.value + 5)
   );
-  let level$1 = _block$2;
-  let _record$2 = game2;
-  return new Game(player$1, level$1, _record$2.market);
+  let _record$1 = game2;
+  return new Game(player$1, level$1, _record$1.market);
 }
 function buy_orb(game2, item_with_key) {
   let player = game2.player;
