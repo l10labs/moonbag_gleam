@@ -6,9 +6,12 @@ import lustre/element.{type Element}
 import lustre/element/html
 import lustre/event
 import msg.{type Msg}
-import ty.{type Health, type MarketItem, type Player, Health, Player}
+import ty.{
+  type Health, type MarketItem, type Player, BombOrb, EmptyOrb, Health, Player,
+  PointOrb,
+}
 
-pub fn clean_button(msg: Msg, title: String) -> Element(Msg) {
+pub fn clean_button(message: Msg, title: String) -> Element(Msg) {
   html.button(
     [
       attribute.class(
@@ -19,7 +22,7 @@ pub fn clean_button(msg: Msg, title: String) -> Element(Msg) {
         <> "focus:ring-offset-2 focus:ring-offset-black "
         <> "transition-colors duration-150 ease-in-out",
       ),
-      event.on_click(msg),
+      event.on_click(message),
     ],
     [html.text(title)],
   )
@@ -106,13 +109,16 @@ pub fn square_view(content_string: String) -> Element(Msg) {
   )
 }
 
-pub fn market_item_view(item_with_key: #(Int, MarketItem)) -> Element(Msg) {
+pub fn market_item_view(
+  item_with_key: #(Int, MarketItem),
+  message: fn(#(Int, MarketItem)) -> Msg,
+) -> Element(Msg) {
   let #(_, item) = item_with_key
   let price = item.price.value |> int.to_string
   let #(name, value) = case item.item {
-    ty.BombOrb(value) -> #("Bomb", value |> int.to_string)
-    ty.PointOrb(value) -> #("Point", value |> int.to_string)
-    ty.EmptyOrb -> #("Empty", 0 |> int.to_string)
+    BombOrb(value) -> #("Bomb", value |> int.to_string)
+    PointOrb(value) -> #("Point", value |> int.to_string)
+    EmptyOrb -> #("Empty", 0 |> int.to_string)
   }
 
   html.div(
@@ -124,7 +130,7 @@ pub fn market_item_view(item_with_key: #(Int, MarketItem)) -> Element(Msg) {
     [
       html.button(
         [
-          event.on_click(msg.PlayerBuyItem(item_with_key)),
+          event.on_click(message(item_with_key)),
           attribute.class("flex flex-col items-center space-y-1 w-full"),
         ],
         [

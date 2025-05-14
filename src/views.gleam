@@ -3,7 +3,10 @@ import gleam/list
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
-import msg.{type Msg}
+import msg.{
+  type Msg, PlayerBuyItem, PlayerNextRound, PlayerPullOrb, PlayerStartGame,
+  PlayerVisitMarket,
+}
 import ty.{type Game, Game, Points}
 import ui
 
@@ -42,7 +45,7 @@ pub fn home() -> Element(Msg) {
     html.h1([attribute.class("text-6xl font-bold text-black tracking-tight")], [
       html.text("MOON BAG"),
     ]),
-    ui.clean_button(msg.PlayerStartGame, "Start Game"),
+    ui.clean_button(PlayerStartGame, "Start Game"),
   ])
 }
 
@@ -87,7 +90,7 @@ pub fn game(game_data: Game) -> Element(Msg) {
             ui.square_view(milestone |> int.to_string),
           ]),
         ]),
-        ui.clean_button(msg.PlayerPullOrb, "Pull Orb"),
+        ui.clean_button(PlayerPullOrb, "Pull Orb"),
       ],
     ),
   ])
@@ -101,7 +104,7 @@ pub fn win() -> Element(Msg) {
     html.p([attribute.class("text-lg text-black mb-4")], [
       html.text("Congratulations on reaching the milestone!"),
     ]),
-    ui.clean_button(msg.PlayerVisitMarket, "Visit the Market"),
+    ui.clean_button(PlayerVisitMarket, "Visit the Market"),
   ])
 }
 
@@ -113,7 +116,7 @@ pub fn lose() -> Element(Msg) {
     html.p([attribute.class("text-lg text-black mb-4")], [
       html.text("Better luck next time!"),
     ]),
-    ui.clean_button(msg.PlayerStartGame, "Restart"),
+    ui.clean_button(PlayerStartGame, "Restart"),
   ])
 }
 
@@ -141,10 +144,10 @@ pub fn market(game_data: Game) -> Element(Msg) {
                   "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6",
                 ),
               ],
-              list.map(items, ui.market_item_view),
+              list.map(items, ui.market_item_view(_, PlayerBuyItem)),
             )
         },
-        ui.clean_button(msg.PlayerNextRound, "Next Round"),
+        ui.clean_button(PlayerNextRound, "Next Round"),
       ],
     ),
   ])

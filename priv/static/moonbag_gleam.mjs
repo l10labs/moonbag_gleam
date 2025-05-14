@@ -4615,13 +4615,13 @@ function on_click(msg) {
 }
 
 // build/dev/javascript/moonbag_gleam/ui.mjs
-function clean_button(msg, title) {
+function clean_button(message, title) {
   return button(
     toList([
       class$(
         "px-8 py-3 mt-4 font-semibold text-sm border-2 border-black rounded tracking-wider uppercase hover:bg-black hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black transition-colors duration-150 ease-in-out"
       ),
-      on_click(msg)
+      on_click(message)
     ]),
     toList([text3(title)])
   );
@@ -4719,7 +4719,7 @@ function square_view(content_string) {
     ])
   );
 }
-function market_item_view(item_with_key) {
+function market_item_view(item_with_key, message) {
   let item = item_with_key[1];
   let _block;
   let _pipe = item.price.value;
@@ -4766,7 +4766,7 @@ function market_item_view(item_with_key) {
     toList([
       button(
         toList([
-          on_click(new PlayerBuyItem(item_with_key)),
+          on_click(message(item_with_key)),
           class$("flex flex-col items-center space-y-1 w-full")
         ]),
         toList([
@@ -4969,7 +4969,17 @@ function market(game_data) {
                     "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6"
                   )
                 ]),
-                map(items, market_item_view)
+                map(
+                  items,
+                  (_capture) => {
+                    return market_item_view(
+                      _capture,
+                      (var0) => {
+                        return new PlayerBuyItem(var0);
+                      }
+                    );
+                  }
+                )
               );
             }
           })(),
