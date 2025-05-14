@@ -4402,48 +4402,63 @@ function get_remaining_orb_list(orb_list) {
     return rest;
   }
 }
-function handle_game_state_transitions(game2) {
-  let player = game2.player;
-  let orb_bag = player.starter_orbs.orbs;
+function resolve_player_orb_pull(player, orb) {
   let _block;
-  let _pipe = orb_bag;
-  _block = get_first_orb(_pipe);
-  let orb_pull = _block;
-  let _block$1;
-  let _pipe$1 = orb_bag;
-  _block$1 = get_remaining_orb_list(_pipe$1);
-  let new_orb_bag = _block$1;
-  let _block$2;
-  if (orb_pull instanceof BombOrb) {
-    let damage = orb_pull[0];
-    _block$2 = [player.health.value - damage, player.points.value];
-  } else if (orb_pull instanceof PointOrb) {
-    let points2 = orb_pull[0];
-    _block$2 = [player.health.value, player.points.value + points2];
+  if (orb instanceof BombOrb) {
+    let damage = orb[0];
+    _block = [player.health.value - damage, player.points.value];
+  } else if (orb instanceof PointOrb) {
+    let points2 = orb[0];
+    _block = [player.health.value, player.points.value + points2];
   } else {
-    _block$2 = [player.health.value, player.points.value];
+    _block = [player.health.value, player.points.value];
   }
-  let $ = _block$2;
+  let $ = _block;
   let health = $[0];
   let points = $[1];
-  let _block$3;
   let _record = player;
-  _block$3 = new Player(
+  return new Player(
     new Health(health),
     new Points(points),
     _record.credits,
-    new OrbBag(new_orb_bag),
+    _record.starter_orbs,
     _record.purchased_orbs,
     _record.curses
   );
-  let new_player = _block$3;
-  let _block$4;
-  let _record$1 = game2;
-  _block$4 = new Game(new_player, _record$1.level, _record$1.market);
-  let new_game = _block$4;
-  return new_game;
 }
-function handle_frontend_view_transitions(game2) {
+function update_player_starter_orbs(player, new_orb_list) {
+  let _record = player;
+  return new Player(
+    _record.health,
+    _record.points,
+    _record.credits,
+    (() => {
+      let _pipe = new_orb_list;
+      return new OrbBag(_pipe);
+    })(),
+    _record.purchased_orbs,
+    _record.curses
+  );
+}
+function update_game_on_orb_pull(game2) {
+  let starter_orbs_list = game2.player.starter_orbs.orbs;
+  let _block;
+  let _pipe = starter_orbs_list;
+  _block = get_first_orb(_pipe);
+  let orb_pull = _block;
+  let _block$1;
+  let _pipe$1 = starter_orbs_list;
+  _block$1 = get_remaining_orb_list(_pipe$1);
+  let new_starter_orbs_list = _block$1;
+  let _block$2;
+  let _pipe$2 = game2.player;
+  let _pipe$3 = resolve_player_orb_pull(_pipe$2, orb_pull);
+  _block$2 = update_player_starter_orbs(_pipe$3, new_starter_orbs_list);
+  let player = _block$2;
+  let _record = game2;
+  return new Game(player, _record.level, _record.market);
+}
+function update_view(game2) {
   let player = game2.player;
   let level = game2.level;
   let health = player.health.value;
@@ -5029,8 +5044,8 @@ function update2(model, message) {
   } else if (model instanceof GameView && message instanceof PlayerPullOrb) {
     let game2 = model[0];
     let _pipe = game2;
-    let _pipe$1 = handle_game_state_transitions(_pipe);
-    return handle_frontend_view_transitions(_pipe$1);
+    let _pipe$1 = update_game_on_orb_pull(_pipe);
+    return update_view(_pipe$1);
   } else if (model instanceof WinView && message instanceof PlayerVisitMarket) {
     let game2 = model[0];
     let _pipe = game2;

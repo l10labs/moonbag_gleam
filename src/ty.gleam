@@ -140,32 +140,37 @@ pub fn get_remaining_orb_list(orb_list: List(Orb)) -> List(Orb) {
   }
 }
 
-pub fn handle_game_state_transitions(game: Game) -> Game {
-  let Game(player, _, _) = game
-  let orb_bag = player.starter_orbs.orbs
-
-  let orb_pull = orb_bag |> get_first_orb
-  let new_orb_bag = orb_bag |> get_remaining_orb_list
-
-  let #(health, points) = case orb_pull {
+pub fn resolve_player_orb_pull(player: Player, orb: Orb) -> Player {
+  let #(health, points) = case orb {
     BombOrb(damage) -> #(player.health.value - damage, player.points.value)
     PointOrb(points) -> #(player.health.value, player.points.value + points)
     EmptyOrb -> #(player.health.value, player.points.value)
   }
 
-  let new_player =
-    Player(
-      ..player,
-      health: Health(health),
-      points: Points(points),
-      starter_orbs: OrbBag(new_orb_bag),
-    )
-  let new_game = Game(..game, player: new_player)
-
-  new_game
+  Player(..player, health: Health(health), points: Points(points))
 }
 
-pub fn handle_frontend_view_transitions(game: Game) -> FrontendViews {
+pub fn update_player_starter_orbs(
+  player: Player,
+  new_orb_list: List(Orb),
+) -> Player {
+  Player(..player, starter_orbs: new_orb_list |> OrbBag)
+}
+
+pub fn update_game_on_orb_pull(game: Game) -> Game {
+  let starter_orbs_list = game.player.starter_orbs.orbs
+  let orb_pull = starter_orbs_list |> get_first_orb
+  let new_starter_orbs_list = starter_orbs_list |> get_remaining_orb_list
+
+  let player =
+    game.player
+    |> resolve_player_orb_pull(orb_pull)
+    |> update_player_starter_orbs(new_starter_orbs_list)
+
+  Game(..game, player:)
+}
+
+pub fn update_view(game: Game) -> FrontendViews {
   let Game(player, level, _) = game
   let health = player.health.value
   let points = player.points.value

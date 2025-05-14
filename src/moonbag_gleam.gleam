@@ -30,8 +30,8 @@ fn update(model: Model, message: Msg) -> Model {
     LoseView(_), PlayerStartGame -> ty.init_game() |> GameView
     GameView(game), PlayerPullOrb ->
       game
-      |> ty.handle_game_state_transitions
-      |> ty.handle_frontend_view_transitions
+      |> ty.update_game_on_orb_pull
+      |> ty.update_view
     WinView(game), PlayerVisitMarket ->
       game
       |> ty.update_credits
