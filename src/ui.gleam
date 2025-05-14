@@ -24,7 +24,7 @@ pub fn clean_button(msg: Msg, title: String) -> Element(Msg) {
 }
 
 pub fn nav_bar_view(player: Player) -> Element(Msg) {
-  let Player(health, _, credits, _, _) = player
+  let Player(health, _, credits, _, _, _) = player
 
   html.nav(
     [attribute.class("px-4 sm:px-6 py-2 flex justify-between items-center")],
@@ -50,7 +50,8 @@ pub fn square_view(content_string: String) -> Element(Msg) {
   )
 }
 
-pub fn market_item_view(item: MarketItem) -> Element(Msg) {
+pub fn market_item_view(item_with_key: #(Int, MarketItem)) -> Element(Msg) {
+  let #(_, item) = item_with_key
   let price = item.price.value |> int.to_string
   let #(name, value) = case item.item {
     newtypes.BombOrb(value) -> #("Bomb", value |> int.to_string)
@@ -59,7 +60,7 @@ pub fn market_item_view(item: MarketItem) -> Element(Msg) {
   }
 
   html.div([attribute.class("flex flex-col items-center justify-center")], [
-    html.button([event.on_click(newtypes.PlayerBuyItem(item))], [
+    html.button([event.on_click(newtypes.PlayerBuyItem(item_with_key))], [
       square_view([name, " ", value] |> string.concat),
       html.h4([], [html.text("cost: " <> price)]),
     ]),

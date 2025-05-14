@@ -373,6 +373,12 @@ var Gt = class extends CustomType {
 };
 
 // build/dev/javascript/gleam_stdlib/gleam/option.mjs
+var Some = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
 var None = class extends CustomType {
 };
 
@@ -1173,6 +1179,28 @@ function map_loop(loop$list, loop$fun, loop$acc) {
 function map(list4, fun) {
   return map_loop(list4, fun, toList([]));
 }
+function index_map_loop(loop$list, loop$fun, loop$index, loop$acc) {
+  while (true) {
+    let list4 = loop$list;
+    let fun = loop$fun;
+    let index3 = loop$index;
+    let acc = loop$acc;
+    if (list4.hasLength(0)) {
+      return reverse(acc);
+    } else {
+      let first$1 = list4.head;
+      let rest$1 = list4.tail;
+      let acc$1 = prepend(fun(first$1, index3), acc);
+      loop$list = rest$1;
+      loop$fun = fun;
+      loop$index = index3 + 1;
+      loop$acc = acc$1;
+    }
+  }
+}
+function index_map(list4, fun) {
+  return index_map_loop(list4, fun, 0, toList([]));
+}
 function append_loop(loop$first, loop$second) {
   while (true) {
     let first = loop$first;
@@ -1189,6 +1217,9 @@ function append_loop(loop$first, loop$second) {
 }
 function append(first, second) {
   return append_loop(reverse(first), second);
+}
+function prepend2(list4, item) {
+  return prepend(item, list4);
 }
 function flatten_loop(loop$lists, loop$acc) {
   while (true) {
@@ -1557,6 +1588,30 @@ function repeat_loop(loop$item, loop$times, loop$acc) {
 }
 function repeat(a, times) {
   return repeat_loop(a, times, toList([]));
+}
+function key_pop_loop(loop$list, loop$key, loop$checked) {
+  while (true) {
+    let list4 = loop$list;
+    let key = loop$key;
+    let checked = loop$checked;
+    if (list4.hasLength(0)) {
+      return new Error(void 0);
+    } else if (list4.atLeastLength(1) && isEqual(list4.head[0], key)) {
+      let k = list4.head[0];
+      let v = list4.head[1];
+      let rest$1 = list4.tail;
+      return new Ok([v, reverse_and_prepend(checked, rest$1)]);
+    } else {
+      let first$1 = list4.head;
+      let rest$1 = list4.tail;
+      loop$list = rest$1;
+      loop$key = key;
+      loop$checked = prepend(first$1, checked);
+    }
+  }
+}
+function key_pop(list4, key) {
+  return key_pop_loop(list4, key, toList([]));
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/string.mjs
@@ -4108,12 +4163,13 @@ function start3(app, selector, start_args) {
 
 // build/dev/javascript/moonbag_gleam/newtypes.mjs
 var Player = class extends CustomType {
-  constructor(health, points, credits, orb_bag, curses) {
+  constructor(health, points, credits, starter_orbs, purchased_orbs, curses) {
     super();
     this.health = health;
     this.points = points;
     this.credits = credits;
-    this.orb_bag = orb_bag;
+    this.starter_orbs = starter_orbs;
+    this.purchased_orbs = purchased_orbs;
     this.curses = curses;
   }
 };
@@ -4252,9 +4308,17 @@ function init_player() {
   let _block;
   let _pipe = init_orbs();
   _block = new OrbBag(_pipe);
-  let orb_bag = _block;
+  let starter_orbs = _block;
+  let purchased_orbs = new OrbBag(toList([]));
   let curses = new Curses(toList([new NothingCurse()]));
-  return new Player(health, points, credits, orb_bag, curses);
+  return new Player(
+    health,
+    points,
+    credits,
+    starter_orbs,
+    purchased_orbs,
+    curses
+  );
 }
 function build_market_item(item, price) {
   return new MarketItem(item, new Credits(price));
@@ -4264,13 +4328,22 @@ function init_market_items() {
     build_market_item(new PointOrb(1), 2),
     build_market_item(new PointOrb(1), 2),
     build_market_item(new PointOrb(1), 2),
+    build_market_item(new PointOrb(1), 2),
     build_market_item(new PointOrb(2), 5),
-    build_market_item(new PointOrb(3), 8)
+    build_market_item(new PointOrb(2), 5),
+    build_market_item(new PointOrb(2), 5),
+    build_market_item(new PointOrb(3), 8),
+    build_market_item(new PointOrb(3), 8),
+    build_market_item(new PointOrb(5), 20),
+    build_market_item(new PointOrb(5), 20)
   ]);
 }
 function init_market() {
   let _pipe = init_market_items();
-  return new Market(_pipe);
+  let _pipe$1 = index_map(_pipe, (x, i) => {
+    return [i, x];
+  });
+  return new Market(_pipe$1);
 }
 function init_level() {
   return new Level(1, 1, new Points(10));
@@ -4283,7 +4356,7 @@ function init_game() {
 }
 function handle_game_state_transitions(game2) {
   let player = game2.player;
-  let orb_bag = player.orb_bag.orbs;
+  let orb_bag = player.starter_orbs.orbs;
   let _block;
   if (orb_bag.hasLength(0)) {
     _block = [new EmptyOrb(), toList([])];
@@ -4315,6 +4388,7 @@ function handle_game_state_transitions(game2) {
     new Points(points),
     _record.credits,
     new OrbBag(new_orb_bag),
+    _record.purchased_orbs,
     _record.curses
   );
   let new_player = _block$2;
@@ -4360,7 +4434,8 @@ function update_credits(game2) {
     _record.health,
     _record.points,
     new Credits(new_credits),
-    _record.orb_bag,
+    _record.starter_orbs,
+    _record.purchased_orbs,
     _record.curses
   );
   let player$1 = _block;
@@ -4371,53 +4446,86 @@ function reset_for_next_round(game2) {
   let player = game2.player;
   let level = game2.level;
   let _block;
+  let _pipe = player.purchased_orbs.orbs;
+  let _pipe$1 = append(_pipe, init_player().starter_orbs.orbs);
+  _block = new OrbBag(_pipe$1);
+  let starter_orbs = _block;
+  let _block$1;
   let _record = init_player();
-  _block = new Player(
+  _block$1 = new Player(
     _record.health,
     _record.points,
     player.credits,
-    _record.orb_bag,
+    starter_orbs,
+    player.purchased_orbs,
     player.curses
   );
-  let player$1 = _block;
-  let _block$1;
+  let player$1 = _block$1;
+  let _block$2;
   let _record$1 = level;
-  _block$1 = new Level(
+  _block$2 = new Level(
     level.current_level + 1,
     _record$1.current_round,
     new Points(level.milestone.value + 5)
   );
-  let level$1 = _block$1;
+  let level$1 = _block$2;
   let _record$2 = game2;
   return new Game(player$1, level$1, _record$2.market);
 }
-function buy_orb(game2, item) {
+function buy_orb(game2, item_with_key) {
   let player = game2.player;
-  let level = game2.level;
   let market2 = game2.market;
-  let item$1 = item.item;
+  let key = item_with_key[0];
+  let item = item_with_key[1];
   let price = item.price;
   let _block;
   let $1 = player.credits.value >= price.value;
   if (!$1) {
-    _block = [player.credits.value];
+    _block = [player.credits.value, market2.items, new None()];
   } else {
-    _block = [player.credits.value - price.value];
+    let _block$12;
+    let $3 = (() => {
+      let _pipe = market2.items;
+      return key_pop(_pipe, key);
+    })();
+    if (!$3.isOk()) {
+      _block$12 = [market2.items, new None()];
+    } else {
+      let player_purchased_item = $3[0][0];
+      let new_items2 = $3[0][1];
+      _block$12 = [new_items2, new Some(player_purchased_item)];
+    }
+    let $2 = _block$12;
+    let new_market_items = $2[0];
+    let player_item = $2[1];
+    _block = [player.credits.value - price.value, new_market_items, player_item];
   }
   let $ = _block;
   let credits = $[0];
+  let new_items = $[1];
+  let player_new_item = $[2];
   let _block$1;
+  if (player_new_item instanceof None) {
+    _block$1 = player.purchased_orbs.orbs;
+  } else {
+    let new_orb = player_new_item[0];
+    let _pipe = player.purchased_orbs.orbs;
+    _block$1 = prepend2(_pipe, new_orb.item);
+  }
+  let player_orb_list = _block$1;
+  let _block$2;
   let _record = player;
-  _block$1 = new Player(
+  _block$2 = new Player(
     _record.health,
     _record.points,
     new Credits(credits),
-    _record.orb_bag,
+    _record.starter_orbs,
+    new OrbBag(player_orb_list),
     _record.curses
   );
-  let player$1 = _block$1;
+  let player$1 = _block$2;
   let _record$1 = game2;
-  return new Game(player$1, _record$1.level, _record$1.market);
+  return new Game(player$1, _record$1.level, new Market(new_items));
 }
 function health_to_string(health) {
   let value = health.value;
@@ -4509,7 +4617,8 @@ function square_view(content_string) {
     ])
   );
 }
-function market_item_view(item) {
+function market_item_view(item_with_key) {
+  let item = item_with_key[1];
   let _block;
   let _pipe = item.price.value;
   _block = to_string(_pipe);
@@ -4550,7 +4659,7 @@ function market_item_view(item) {
     toList([class$("flex flex-col items-center justify-center")]),
     toList([
       button(
-        toList([on_click(new PlayerBuyItem(item))]),
+        toList([on_click(new PlayerBuyItem(item_with_key))]),
         toList([
           square_view(
             (() => {
@@ -4741,8 +4850,7 @@ function update2(model, msg) {
     let game2 = model[0];
     let _pipe = game2;
     let _pipe$1 = update_credits(_pipe);
-    let _pipe$2 = reset_for_next_round(_pipe$1);
-    return new MarketView(_pipe$2);
+    return new MarketView(_pipe$1);
   } else if (model instanceof MarketView && msg instanceof PlayerBuyItem) {
     let game2 = model[0];
     let item = msg[0];
@@ -4751,7 +4859,8 @@ function update2(model, msg) {
   } else if (model instanceof MarketView && msg instanceof PlayerNextRound) {
     let game2 = model[0];
     let _pipe = game2;
-    return new GameView(_pipe);
+    let _pipe$1 = reset_for_next_round(_pipe);
+    return new GameView(_pipe$1);
   } else {
     return new HomeView();
   }

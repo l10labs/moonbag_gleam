@@ -48,11 +48,14 @@ fn update(model: Model, msg: Msg) -> Model {
     WinView(game), newtypes.PlayerVisitMarket ->
       game
       |> newtypes.update_credits
-      |> newtypes.reset_for_next_round
       |> MarketView
     MarketView(game), newtypes.PlayerBuyItem(item) ->
-      newtypes.buy_orb(game, item) |> MarketView
-    MarketView(game), newtypes.PlayerNextRound -> game |> GameView
+      newtypes.buy_orb(game, item)
+      |> MarketView
+    MarketView(game), newtypes.PlayerNextRound ->
+      game
+      |> newtypes.reset_for_next_round
+      |> GameView
     _, _ -> HomeView
   }
 }

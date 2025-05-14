@@ -1,6 +1,7 @@
 // NEW TYPES FOR MOON BAG
 import gleam/int
 import gleam/list
+import gleam/option
 import gleam/string
 
 pub type Player {
@@ -8,7 +9,8 @@ pub type Player {
     health: Health,
     points: Points,
     credits: Credits,
-    orb_bag: OrbBag,
+    starter_orbs: OrbBag,
+    purchased_orbs: OrbBag,
     curses: Curses,
   )
 }
@@ -44,7 +46,7 @@ pub type Curse {
 }
 
 pub type Market {
-  Market(items: List(MarketItem))
+  Market(items: List(#(Int, MarketItem)))
 }
 
 pub type MarketItem {
@@ -73,7 +75,7 @@ pub type Msg {
   PlayerPullOrb
   PlayerVisitMarket
   PlayerNextRound
-  PlayerBuyItem(MarketItem)
+  PlayerBuyItem(#(Int, MarketItem))
 }
 
 pub fn init_player() -> Player {
@@ -81,10 +83,11 @@ pub fn init_player() -> Player {
   let points = Points(0)
   let credits = Credits(0)
   // let orb_bag = init_orbs() |> list.shuffle |> OrbBag
-  let orb_bag = init_orbs() |> OrbBag
+  let starter_orbs = init_orbs() |> OrbBag
+  let purchased_orbs = OrbBag([])
   let curses = Curses(curses: [NothingCurse])
 
-  Player(health:, points:, credits:, orb_bag:, curses:)
+  Player(health:, points:, credits:, starter_orbs:, curses:, purchased_orbs:)
 }
 
 pub fn init_orbs() -> List(Orb) {
@@ -107,8 +110,14 @@ pub fn init_market_items() -> List(MarketItem) {
     build_market_item(PointOrb(1), 2),
     build_market_item(PointOrb(1), 2),
     build_market_item(PointOrb(1), 2),
+    build_market_item(PointOrb(1), 2),
+    build_market_item(PointOrb(2), 5),
+    build_market_item(PointOrb(2), 5),
     build_market_item(PointOrb(2), 5),
     build_market_item(PointOrb(3), 8),
+    build_market_item(PointOrb(3), 8),
+    build_market_item(PointOrb(5), 20),
+    build_market_item(PointOrb(5), 20),
   ]
 }
 
@@ -117,7 +126,7 @@ pub fn build_market_item(item: Orb, price: Int) -> MarketItem {
 }
 
 pub fn init_market() -> Market {
-  init_market_items() |> Market
+  init_market_items() |> list.index_map(fn(x, i) { #(i, x) }) |> Market
 }
 
 pub fn init_level() -> Level {
@@ -134,7 +143,7 @@ pub fn init_game() -> Game {
 
 pub fn handle_game_state_transitions(game: Game) -> Game {
   let Game(player, _, _) = game
-  let orb_bag = player.orb_bag.orbs
+  let orb_bag = player.starter_orbs.orbs
 
   let #(orb_pull, new_orb_bag) = case orb_bag {
     [] -> #(EmptyOrb, [])
@@ -154,7 +163,7 @@ pub fn handle_game_state_transitions(game: Game) -> Game {
       ..player,
       health: Health(health),
       points: Points(points),
-      orb_bag: OrbBag(new_orb_bag),
+      starter_orbs: OrbBag(new_orb_bag),
     )
   let new_game = Game(..game, player: new_player)
 
@@ -188,8 +197,18 @@ pub fn update_credits(game: Game) -> Game {
 
 pub fn reset_for_next_round(game: Game) -> Game {
   let Game(player, level, _) = game
+  let starter_orbs =
+    player.purchased_orbs.orbs
+    |> list.append(init_player().starter_orbs.orbs)
+    |> OrbBag
   let player =
-    Player(..init_player(), credits: player.credits, curses: player.curses)
+    Player(
+      ..init_player(),
+      credits: player.credits,
+      starter_orbs:,
+      purchased_orbs: player.purchased_orbs,
+      curses: player.curses,
+    )
   let level =
     Level(
       ..level,
@@ -200,19 +219,56 @@ pub fn reset_for_next_round(game: Game) -> Game {
   Game(..game, player:, level:)
 }
 
-pub fn buy_orb(game: Game, item: MarketItem) -> Game {
-  let Game(player, level, market) = game
-  let MarketItem(item, price) = item
+pub fn buy_orb(game: Game, item_with_key: #(Int, MarketItem)) -> Game {
+  let Game(player, _, market) = game
+  let #(key, item) = item_with_key
+  let MarketItem(_, price) = item
 
-  let #(credits) = case player.credits.value >= price.value {
-    False -> #(player.credits.value)
-    True -> #(player.credits.value - price.value)
+  let #(credits, new_items, player_new_item) = case
+    player.credits.value >= price.value
+  {
+    False -> #(player.credits.value, market.items, option.None)
+    True -> {
+      let #(new_market_items, player_item) = case
+        market.items |> list.key_pop(key)
+      {
+        Error(_) -> #(market.items, option.None)
+        Ok(#(player_purchased_item, new_items)) -> #(
+          new_items,
+          option.Some(player_purchased_item),
+        )
+      }
+      #(player.credits.value - price.value, new_market_items, player_item)
+    }
   }
 
-  let player = Player(..player, credits: Credits(credits))
+  let player_orb_list = case player_new_item {
+    option.None -> player.purchased_orbs.orbs
+    option.Some(new_orb) ->
+      player.purchased_orbs.orbs |> list.prepend(new_orb.item)
+  }
 
-  Game(..game, player:)
+  let player =
+    Player(
+      ..player,
+      credits: Credits(credits),
+      purchased_orbs: OrbBag(player_orb_list),
+    )
+
+  Game(..game, player:, market: Market(items: new_items))
 }
+
+// pub fn remove_market_item(item: MarketItem, market: Market) -> Market {
+//   let new_items = case market.items {
+//     [] -> todo
+//     [first, ..rest] ->
+//       case first == item {
+//         False -> 
+//         True -> rest
+//       }
+//   }
+//   market
+// }
 
 // Functions for types to strings
 
@@ -271,11 +327,11 @@ pub fn market_item_to_string(market_item: MarketItem) -> String {
   <> ")"
 }
 
-pub fn market_to_string(market: Market) -> String {
-  let Market(market_item_list) = market
-  let item_strings = list.map(market_item_list, market_item_to_string)
-  "Market([" <> string.join(item_strings, ", ") <> "])"
-}
+// pub fn market_to_string(market: Market) -> String {
+//   let Market(market_item_list) = market
+//   let item_strings = list.map(market_item_list, market_item_to_string)
+//   "Market([" <> string.join(item_strings, ", ") <> "])"
+// }
 
 pub fn level_to_string(level: Level) -> String {
   let Level(current_level, current_round, milestone) = level
@@ -289,7 +345,7 @@ pub fn level_to_string(level: Level) -> String {
 }
 
 pub fn player_to_string(player: Player) -> String {
-  let Player(health, points, credits, orbs, curses) = player
+  let Player(health, points, credits, orbs, _, curses) = player
   "Player(health: "
   <> health_to_string(health)
   <> ", points: "
@@ -304,11 +360,11 @@ pub fn player_to_string(player: Player) -> String {
 }
 
 pub fn game_to_string(game: Game) -> String {
-  let Game(player, level, market) = game
+  let Game(player, level, _) = game
   "Game(player: "
   <> player_to_string(player)
   <> ", market: "
-  <> market_to_string(market)
+  // <> market_to_string(market)
   <> ", level: "
   <> level_to_string(level)
   <> ")"
