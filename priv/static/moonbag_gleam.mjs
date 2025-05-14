@@ -1133,6 +1133,21 @@ function map_insert(key, value, map4) {
   return map4.set(key, value);
 }
 
+// build/dev/javascript/gleam_stdlib/gleam/int.mjs
+function compare(a, b) {
+  let $ = a === b;
+  if ($) {
+    return new Eq();
+  } else {
+    let $1 = a < b;
+    if ($1) {
+      return new Lt();
+    } else {
+      return new Gt();
+    }
+  }
+}
+
 // build/dev/javascript/gleam_stdlib/gleam/dict.mjs
 function insert(dict2, key, value) {
   return map_insert(key, value, dict2);
@@ -1159,6 +1174,9 @@ function reverse_and_prepend(loop$prefix, loop$suffix) {
 }
 function reverse(list4) {
   return reverse_and_prepend(list4, toList([]));
+}
+function is_empty(list4) {
+  return isEqual(list4, toList([]));
 }
 function map_loop(loop$list, loop$fun, loop$acc) {
   while (true) {
@@ -1570,6 +1588,28 @@ function sort(list4, compare4) {
     );
     return merge_all(sequences$1, new Ascending(), compare4);
   }
+}
+function range_loop(loop$start, loop$stop, loop$acc) {
+  while (true) {
+    let start4 = loop$start;
+    let stop = loop$stop;
+    let acc = loop$acc;
+    let $ = compare(start4, stop);
+    if ($ instanceof Eq) {
+      return prepend(stop, acc);
+    } else if ($ instanceof Gt) {
+      loop$start = start4;
+      loop$stop = stop + 1;
+      loop$acc = prepend(stop, acc);
+    } else {
+      loop$start = start4;
+      loop$stop = stop - 1;
+      loop$acc = prepend(stop, acc);
+    }
+  }
+}
+function range(start4, stop) {
+  return range_loop(start4, stop, toList([]));
 }
 function repeat_loop(loop$item, loop$times, loop$acc) {
   while (true) {
@@ -4022,11 +4062,17 @@ function h1(attrs, children) {
 function h4(attrs, children) {
   return element2("h4", attrs, children);
 }
+function main(attrs, children) {
+  return element2("main", attrs, children);
+}
 function nav(attrs, children) {
   return element2("nav", attrs, children);
 }
 function div(attrs, children) {
   return element2("div", attrs, children);
+}
+function p(attrs, children) {
+  return element2("p", attrs, children);
 }
 function span(attrs, children) {
   return element2("span", attrs, children);
@@ -4335,7 +4381,8 @@ function init_market_items() {
     build_market_item(new PointOrb(3), 8),
     build_market_item(new PointOrb(3), 8),
     build_market_item(new PointOrb(5), 20),
-    build_market_item(new PointOrb(5), 20)
+    build_market_item(new PointOrb(5), 20),
+    build_market_item(new PointOrb(10), 50)
   ]);
 }
 function init_market() {
@@ -4527,14 +4574,6 @@ function buy_orb(game2, item_with_key) {
   let _record$1 = game2;
   return new Game(player$1, _record$1.level, new Market(new_items));
 }
-function health_to_string(health) {
-  let value = health.value;
-  return "Health(" + to_string(value) + ")";
-}
-function credits_to_string(credits) {
-  let value = credits.value;
-  return "Credits(" + to_string(value) + ")";
-}
 
 // build/dev/javascript/lustre/lustre/event.mjs
 function is_immediate_event(name) {
@@ -4576,11 +4615,58 @@ function clean_button(msg, title) {
   return button(
     toList([
       class$(
-        "px-8 py-3 mt-4 font-medium border-2 border-black rounded hover:bg-black hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black transition-colors duration-150 ease-in-out"
+        "px-8 py-3 mt-4 font-semibold text-sm border-2 border-black rounded tracking-wider uppercase hover:bg-black hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black transition-colors duration-150 ease-in-out"
       ),
       on_click(msg)
     ]),
     toList([text3(title)])
+  );
+}
+function health_segment(is_filled) {
+  let base_class = "w-4 h-6";
+  let filled_class = "bg-black";
+  let empty_class = "bg-white border border-black";
+  return div(
+    toList([
+      class$(
+        base_class + " " + (() => {
+          if (is_filled) {
+            return filled_class;
+          } else {
+            return empty_class;
+          }
+        })()
+      )
+    ]),
+    toList([])
+  );
+}
+function health_bar_view(current_health) {
+  let max_health_segments = 5;
+  let filled_count = current_health.value;
+  let _block;
+  let _pipe = range(1, max_health_segments);
+  _block = map(
+    _pipe,
+    (segment_index) => {
+      return health_segment(segment_index <= filled_count);
+    }
+  );
+  let segments = _block;
+  return div(
+    toList([class$("flex flex-row space-x-1 items-center")]),
+    (() => {
+      let _pipe$1 = segments;
+      return prepend2(
+        _pipe$1,
+        div(
+          toList([
+            class$("text-md font-semibold text-black tracking-tight")
+          ]),
+          toList([text3("HEALTH: ")])
+        )
+      );
+    })()
   );
 }
 function nav_bar_view(player) {
@@ -4588,16 +4674,28 @@ function nav_bar_view(player) {
   let credits = player.credits;
   return nav(
     toList([
-      class$("px-4 sm:px-6 py-2 flex justify-between items-center")
+      class$(
+        "bg-white px-4 sm:px-6 py-3 flex justify-between items-center border-b-2 border-black sticky top-0 z-10"
+      )
     ]),
     toList([
+      health_bar_view(health),
       div(
-        toList([]),
-        toList([text3(health_to_string(health))])
-      ),
-      div(
-        toList([]),
-        toList([text3(credits_to_string(credits))])
+        toList([
+          class$("text-md font-semibold text-black tracking-tight")
+        ]),
+        toList([
+          text3("CREDITS: $"),
+          span(
+            toList([class$("font-bold")]),
+            toList([
+              (() => {
+                let _pipe = to_string(credits.value);
+                return text3(_pipe);
+              })()
+            ])
+          )
+        ])
       )
     ])
   );
@@ -4606,12 +4704,12 @@ function square_view(content_string) {
   return div(
     toList([
       class$(
-        "w-24 h-24 flex items-center justify-center border border-black"
+        "w-24 h-24 flex items-center justify-center border-2 border-black bg-white"
       )
     ]),
     toList([
       span(
-        toList([class$("text-lg font-medium text-center")]),
+        toList([class$("text-xl font-semibold text-black")]),
         toList([text3(content_string)])
       )
     ])
@@ -4656,10 +4754,17 @@ function market_item_view(item_with_key) {
   let name = $[0];
   let value = $[1];
   return div(
-    toList([class$("flex flex-col items-center justify-center")]),
+    toList([
+      class$(
+        "flex flex-col items-center justify-center p-2 border-2 border-black rounded bg-white hover:shadow-lg transition-shadow"
+      )
+    ]),
     toList([
       button(
-        toList([on_click(new PlayerBuyItem(item_with_key))]),
+        toList([
+          on_click(new PlayerBuyItem(item_with_key)),
+          class$("flex flex-col items-center space-y-1 w-full")
+        ]),
         toList([
           square_view(
             (() => {
@@ -4667,7 +4772,10 @@ function market_item_view(item_with_key) {
               return concat2(_pipe$1);
             })()
           ),
-          h4(toList([]), toList([text3("cost: " + price)]))
+          h4(
+            toList([class$("text-sm font-medium text-black mt-1")]),
+            toList([text3("Cost: " + price)])
+          )
         ])
       )
     ])
@@ -4675,59 +4783,88 @@ function market_item_view(item_with_key) {
 }
 
 // build/dev/javascript/moonbag_gleam/views.mjs
-function home() {
+function page_wrapper(styles, content) {
   return div(
     toList([
       class$(
-        "min-h-screen flex flex-col items-center justify-center p-4"
+        "bg-white text-black min-h-screen flex flex-col " + fold(
+          styles,
+          "",
+          (acc, s) => {
+            return acc + " " + s;
+          }
+        )
       )
     ]),
+    content
+  );
+}
+function centered_content_wrapper(additional_styles, content) {
+  return page_wrapper(
+    (() => {
+      let _pipe = toList(["items-center justify-center p-8"]);
+      return append(_pipe, additional_styles);
+    })(),
     toList([
       div(
         toList([
-          class$("flex flex-col items-center gap-10 text-center")
+          class$("flex flex-col items-center text-center space-y-8")
         ]),
-        toList([
-          h1(
-            toList([
-              class$(
-                "text-5xl sm:text-6xl font-semibold tracking-wider"
-              )
-            ]),
-            toList([text3("MOON BAG")])
-          ),
-          clean_button(new PlayerStartGame(), "Start Game")
-        ])
+        content
       )
     ])
   );
 }
-function game(game2) {
-  let player = game2.player;
-  let level = game2.level;
+function home() {
+  return centered_content_wrapper(
+    toList([]),
+    toList([
+      h1(
+        toList([
+          class$("text-6xl font-bold text-black tracking-tight")
+        ]),
+        toList([text3("MOON BAG")])
+      ),
+      clean_button(new PlayerStartGame(), "Start Game")
+    ])
+  );
+}
+function game(game_data) {
+  let player = game_data.player;
+  let level = game_data.level;
   let $ = player.points;
   let points = $.value;
   let $1 = level.milestone;
   let milestone = $1.value;
-  return div(
-    toList([class$("")]),
+  return page_wrapper(
+    toList([]),
     toList([
-      nav_bar_view(game2.player),
-      div(
+      nav_bar_view(player),
+      main(
         toList([
           class$(
-            "min-h-screen flex flex-col items-center justify-center p-4"
+            "flex-grow flex flex-col items-center justify-center p-8 space-y-6"
           )
         ]),
         toList([
-          h1(toList([]), toList([text3("Game View")])),
+          h1(
+            toList([class$("text-4xl font-semibold text-black mb-4")]),
+            toList([text3("LEVEL " + to_string(level.current_level))])
+          ),
           div(
-            toList([class$("flex flex-row p-4")]),
+            toList([class$("flex flex-row space-x-8 mb-6")]),
             toList([
               div(
-                toList([]),
+                toList([class$("flex flex-col items-center")]),
                 toList([
-                  text3("Points"),
+                  span(
+                    toList([
+                      class$(
+                        "text-sm text-black mb-1 uppercase tracking-wider"
+                      )
+                    ]),
+                    toList([text3("Points")])
+                  ),
                   square_view(
                     (() => {
                       let _pipe = points;
@@ -4737,9 +4874,16 @@ function game(game2) {
                 ])
               ),
               div(
-                toList([]),
+                toList([class$("flex flex-col items-center")]),
                 toList([
-                  text3("Milestone"),
+                  span(
+                    toList([
+                      class$(
+                        "text-sm text-black mb-1 uppercase tracking-wider"
+                      )
+                    ]),
+                    toList([text3("Milestone")])
+                  ),
                   square_view(
                     (() => {
                       let _pipe = milestone;
@@ -4757,64 +4901,74 @@ function game(game2) {
   );
 }
 function win() {
-  return div(
+  return centered_content_wrapper(
+    toList([]),
     toList([
-      class$(
-        "min-h-screen flex flex-col items-center justify-center p-4"
-      )
-    ]),
-    toList([
-      h1(toList([]), toList([text3("YOU WON!")])),
-      div(
-        toList([class$("flex flex-row gap-2")]),
-        toList([
-          clean_button(
-            new PlayerVisitMarket(),
-            "Visit the Market"
-          )
-        ])
-      )
+      h1(
+        toList([class$("text-5xl font-bold text-black mb-2")]),
+        toList([text3("YOU WON!")])
+      ),
+      p(
+        toList([class$("text-lg text-black mb-4")]),
+        toList([text3("Congratulations on reaching the milestone!")])
+      ),
+      clean_button(new PlayerVisitMarket(), "Visit the Market")
     ])
   );
 }
 function lose() {
-  return div(
+  return centered_content_wrapper(
+    toList([]),
     toList([
-      class$(
-        "min-h-screen flex flex-col items-center justify-center p-4"
-      )
-    ]),
-    toList([
-      h1(toList([]), toList([text3("YOU LOSE!")])),
-      div(
-        toList([class$("flex flex-row gap-2")]),
-        toList([clean_button(new PlayerStartGame(), "Restart")])
-      )
+      h1(
+        toList([class$("text-5xl font-bold text-black mb-2")]),
+        toList([text3("GAME OVER")])
+      ),
+      p(
+        toList([class$("text-lg text-black mb-4")]),
+        toList([text3("Better luck next time!")])
+      ),
+      clean_button(new PlayerStartGame(), "Restart")
     ])
   );
 }
-function market(game2) {
-  let market$1 = game2.market;
+function market(game_data) {
+  let player = game_data.player;
+  let market$1 = game_data.market;
   let items = market$1.items;
-  return div(
-    toList([class$("")]),
+  return page_wrapper(
+    toList([]),
     toList([
-      nav_bar_view(game2.player),
-      div(
+      nav_bar_view(player),
+      main(
         toList([
           class$(
-            "min-h-screen flex flex-col items-center justify-center p-4"
+            "flex-grow flex flex-col items-center p-8 space-y-6"
           )
         ]),
         toList([
-          h1(toList([]), toList([text3("Market View")])),
-          div(
-            toList([class$("flex flex-row")]),
-            (() => {
-              let _pipe = items;
-              return map(_pipe, market_item_view);
-            })()
+          h1(
+            toList([class$("text-4xl font-semibold text-black mb-6")]),
+            toList([text3("Market")])
           ),
+          (() => {
+            let $ = is_empty(items);
+            if ($) {
+              return p(
+                toList([class$("text-lg text-black")]),
+                toList([text3("The market is currently empty.")])
+              );
+            } else {
+              return div(
+                toList([
+                  class$(
+                    "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6"
+                  )
+                ]),
+                map(items, market_item_view)
+              );
+            }
+          })(),
           clean_button(new PlayerNextRound(), "Next Round")
         ])
       )
@@ -4822,13 +4976,18 @@ function market(game2) {
   );
 }
 function error() {
-  return div(
+  return centered_content_wrapper(
+    toList([]),
     toList([
-      class$(
-        "min-h-screen flex flex-col items-center justify-center p-4 text-4xl"
+      h1(
+        toList([class$("text-5xl font-bold text-black")]),
+        toList([text3("404")])
+      ),
+      p(
+        toList([class$("text-xl text-black")]),
+        toList([text3("Page Not Found")])
       )
-    ]),
-    toList([h1(toList([]), toList([text3("404 ERROR")]))])
+    ])
   );
 }
 
@@ -4882,7 +5041,7 @@ function view(model) {
     return error();
   }
 }
-function main() {
+function main2() {
   let app = simple(init, update2, view);
   let $ = start3(app, "#app", void 0);
   if (!$.isOk()) {
@@ -4899,4 +5058,4 @@ function main() {
 }
 
 // build/.lustre/entry.mjs
-main();
+main2();

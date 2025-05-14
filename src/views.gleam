@@ -6,118 +6,145 @@ import lustre/element/html
 import newtypes.{type Game, type Msg, Game, Points}
 import ui
 
-pub fn home() -> Element(Msg) {
+// Helper function for common page wrapper style
+fn page_wrapper(
+  styles: List(String),
+  content: List(Element(Msg)),
+) -> Element(Msg) {
   html.div(
     [
       attribute.class(
-        "min-h-screen flex flex-col items-center justify-center p-4",
+        "bg-white text-black min-h-screen flex flex-col "
+        <> list.fold(styles, "", fn(acc, s) { acc <> " " <> s }),
       ),
     ],
+    content,
+  )
+}
+
+// Helper function for centered content within a page wrapper
+fn centered_content_wrapper(
+  additional_styles: List(String),
+  content: List(Element(Msg)),
+) -> Element(Msg) {
+  page_wrapper(
+    ["items-center justify-center p-8"] |> list.append(additional_styles),
     [
       html.div(
-        [attribute.class("flex flex-col items-center gap-10 text-center")],
-        [
-          html.h1(
-            [
-              attribute.class(
-                "text-5xl sm:text-6xl font-semibold tracking-wider",
-              ),
-            ],
-            [html.text("MOON BAG")],
-          ),
-          ui.clean_button(newtypes.PlayerStartGame, "Start Game"),
-        ],
+        [attribute.class("flex flex-col items-center text-center space-y-8")],
+        content,
       ),
     ],
   )
 }
 
-pub fn game(game: Game) -> Element(Msg) {
-  let Game(player, level, _) = game
+pub fn home() -> Element(Msg) {
+  centered_content_wrapper([], [
+    html.h1([attribute.class("text-6xl font-bold text-black tracking-tight")], [
+      html.text("MOON BAG"),
+    ]),
+    ui.clean_button(newtypes.PlayerStartGame, "Start Game"),
+  ])
+}
+
+pub fn game(game_data: Game) -> Element(Msg) {
+  let Game(player, level, _) = game_data
   let Points(points) = player.points
   let Points(milestone) = level.milestone
 
-  html.div([attribute.class("")], [
-    ui.nav_bar_view(game.player),
-    html.div(
+  page_wrapper([], [
+    ui.nav_bar_view(player),
+    html.main(
       [
         attribute.class(
-          "min-h-screen flex flex-col items-center justify-center p-4",
+          "flex-grow flex flex-col items-center justify-center p-8 space-y-6",
         ),
       ],
       [
-        html.h1([], [html.text("Game View")]),
-        html.div([attribute.class("flex flex-row p-4")], [
-          html.div([], [
-            html.text("Points"),
+        html.h1([attribute.class("text-4xl font-semibold text-black mb-4")], [
+          html.text("LEVEL " <> int.to_string(level.current_level)),
+        ]),
+        html.div([attribute.class("flex flex-row space-x-8 mb-6")], [
+          html.div([attribute.class("flex flex-col items-center")], [
+            html.span(
+              [
+                attribute.class(
+                  "text-sm text-black mb-1 uppercase tracking-wider",
+                ),
+              ],
+              [html.text("Points")],
+            ),
             ui.square_view(points |> int.to_string),
           ]),
-          html.div([], [
-            html.text("Milestone"),
+          html.div([attribute.class("flex flex-col items-center")], [
+            html.span(
+              [
+                attribute.class(
+                  "text-sm text-black mb-1 uppercase tracking-wider",
+                ),
+              ],
+              [html.text("Milestone")],
+            ),
             ui.square_view(milestone |> int.to_string),
           ]),
         ]),
         ui.clean_button(newtypes.PlayerPullOrb, "Pull Orb"),
-        // html.div([attribute.class("flex flex-row gap-2")], [
-      //   ui.clean_button(newtypes.TestWinView, "Win View"),
-      //   ui.clean_button(newtypes.PlayerNextLevel, "Lose View"),
-      //   ui.clean_button(newtypes.PlayerNextLevel, "Market View"),
-      // ]),
       ],
     ),
   ])
 }
 
 pub fn win() -> Element(Msg) {
-  html.div(
-    [
-      attribute.class(
-        "min-h-screen flex flex-col items-center justify-center p-4",
-      ),
-    ],
-    [
-      html.h1([], [html.text("YOU WON!")]),
-      html.div([attribute.class("flex flex-row gap-2")], [
-        ui.clean_button(newtypes.PlayerVisitMarket, "Visit the Market"),
-      ]),
-    ],
-  )
+  centered_content_wrapper([], [
+    html.h1([attribute.class("text-5xl font-bold text-black mb-2")], [
+      html.text("YOU WON!"),
+    ]),
+    html.p([attribute.class("text-lg text-black mb-4")], [
+      html.text("Congratulations on reaching the milestone!"),
+    ]),
+    ui.clean_button(newtypes.PlayerVisitMarket, "Visit the Market"),
+  ])
 }
 
 pub fn lose() -> Element(Msg) {
-  html.div(
-    [
-      attribute.class(
-        "min-h-screen flex flex-col items-center justify-center p-4",
-      ),
-    ],
-    [
-      html.h1([], [html.text("YOU LOSE!")]),
-      html.div([attribute.class("flex flex-row gap-2")], [
-        ui.clean_button(newtypes.PlayerStartGame, "Restart"),
-      ]),
-    ],
-  )
+  centered_content_wrapper([], [
+    html.h1([attribute.class("text-5xl font-bold text-black mb-2")], [
+      html.text("GAME OVER"),
+    ]),
+    html.p([attribute.class("text-lg text-black mb-4")], [
+      html.text("Better luck next time!"),
+    ]),
+    ui.clean_button(newtypes.PlayerStartGame, "Restart"),
+  ])
 }
 
-pub fn market(game: Game) -> Element(Msg) {
-  let Game(_, _, market) = game
+pub fn market(game_data: Game) -> Element(Msg) {
+  let Game(player, _, market) = game_data
   let items = market.items
-  html.div([attribute.class("")], [
-    ui.nav_bar_view(game.player),
-    html.div(
+
+  page_wrapper([], [
+    ui.nav_bar_view(player),
+    html.main(
+      [attribute.class("flex-grow flex flex-col items-center p-8 space-y-6")],
       [
-        attribute.class(
-          "min-h-screen flex flex-col items-center justify-center p-4",
-        ),
-      ],
-      [
-        html.h1([], [html.text("Market View")]),
-        html.div(
-          [attribute.class("flex flex-row")],
-          items
-            |> list.map(ui.market_item_view),
-        ),
+        html.h1([attribute.class("text-4xl font-semibold text-black mb-6")], [
+          html.text("Market"),
+        ]),
+        case list.is_empty(items) {
+          True ->
+            html.p([attribute.class("text-lg text-black")], [
+              html.text("The market is currently empty."),
+            ])
+          False ->
+            html.div(
+              [
+                attribute.class(
+                  "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6",
+                ),
+              ],
+              list.map(items, ui.market_item_view),
+            )
+        },
         ui.clean_button(newtypes.PlayerNextRound, "Next Round"),
       ],
     ),
@@ -125,12 +152,12 @@ pub fn market(game: Game) -> Element(Msg) {
 }
 
 pub fn error() -> Element(Msg) {
-  html.div(
-    [
-      attribute.class(
-        "min-h-screen flex flex-col items-center justify-center p-4 text-4xl",
-      ),
-    ],
-    [html.h1([], [html.text("404 ERROR")])],
-  )
+  centered_content_wrapper([], [
+    html.h1([attribute.class("text-5xl font-bold text-black")], [
+      html.text("404"),
+    ]),
+    html.p([attribute.class("text-xl text-black")], [
+      html.text("Page Not Found"),
+    ]),
+  ])
 }

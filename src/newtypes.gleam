@@ -118,6 +118,7 @@ pub fn init_market_items() -> List(MarketItem) {
     build_market_item(PointOrb(3), 8),
     build_market_item(PointOrb(5), 20),
     build_market_item(PointOrb(5), 20),
+    build_market_item(PointOrb(10), 50),
   ]
 }
 
