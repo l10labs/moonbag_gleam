@@ -1,4 +1,3 @@
-// NEW TYPES FOR MOON BAG
 import gleam/int
 import gleam/list
 import gleam/option
@@ -259,22 +258,6 @@ pub fn buy_orb(game: Game, item_with_key: #(Int, MarketItem)) -> Game {
   Game(..game, player:, market: Market(items: new_items))
 }
 
-// pub fn remove_market_item(item: MarketItem, market: Market) -> Market {
-//   let new_items = case market.items {
-//     [] -> todo
-//     [first, ..rest] ->
-//       case first == item {
-//         False -> 
-//         True -> rest
-//       }
-//   }
-//   market
-// }
-
-// Functions for types to strings
-
-// --- to_string Functions ---
-
 pub fn health_to_string(health: Health) -> String {
   let Health(value) = health
   "Health(" <> int.to_string(value) <> ")"
@@ -304,12 +287,7 @@ pub fn orbs_to_string(orbs: OrbBag) -> String {
   "Orbs([" <> string.join(item_strings, ", ") <> "])"
 }
 
-// For the opaque type `Curse`, we can only provide a generic string.
-// If `Curse` had constructors or specific identifiable data, this would be different.
 pub fn curse_to_string(_curse: Curse) -> String {
-  // If Curse instances were created with some internal ID or distinguishable
-  // feature (even if opaque), you might have a function in Curse's own module
-  // to get that. For now, we assume a generic representation.
   "Curse"
 }
 
@@ -327,12 +305,6 @@ pub fn market_item_to_string(market_item: MarketItem) -> String {
   <> credits_to_string(price)
   <> ")"
 }
-
-// pub fn market_to_string(market: Market) -> String {
-//   let Market(market_item_list) = market
-//   let item_strings = list.map(market_item_list, market_item_to_string)
-//   "Market([" <> string.join(item_strings, ", ") <> "])"
-// }
 
 pub fn level_to_string(level: Level) -> String {
   let Level(current_level, current_round, milestone) = level
@@ -365,7 +337,6 @@ pub fn game_to_string(game: Game) -> String {
   "Game(player: "
   <> player_to_string(player)
   <> ", market: "
-  // <> market_to_string(market)
   <> ", level: "
   <> level_to_string(level)
   <> ")"

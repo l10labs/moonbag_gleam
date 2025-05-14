@@ -6,7 +6,6 @@ import lustre/element/html
 import newtypes.{type Game, type Msg, Game, Points}
 import ui
 
-// Helper function for common page wrapper style
 fn page_wrapper(
   styles: List(String),
   content: List(Element(Msg)),
@@ -22,7 +21,6 @@ fn page_wrapper(
   )
 }
 
-// Helper function for centered content within a page wrapper
 fn centered_content_wrapper(
   additional_styles: List(String),
   content: List(Element(Msg)),

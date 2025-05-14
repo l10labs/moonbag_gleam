@@ -26,25 +26,20 @@ pub fn clean_button(msg: Msg, title: String) -> Element(Msg) {
   )
 }
 
-// --- New Health Bar Component ---
-
 fn health_segment(is_filled: Bool) -> Element(Msg) {
   let base_class = "w-4 h-6"
-  // Width and height of each segment
   let filled_class = "bg-black"
   let empty_class = "bg-white border border-black"
 
   html.div(
     [
       attribute.class(
-        // base_class <> " " <> if is_filled { filled_class } else { empty_class },
         base_class
         <> " "
         <> case is_filled {
           True -> filled_class
           False -> empty_class
         },
-        // { filled_class } else { empty_class },
       ),
     ],
     [],
@@ -52,9 +47,7 @@ fn health_segment(is_filled: Bool) -> Element(Msg) {
 }
 
 fn health_bar_view(current_health: Health) -> Element(Msg) {
-  // Assuming max health is 5, based on init_player() in newtypes.gleam.
-  // If max_health can change, this should be passed as a parameter.
-  let max_health_segments = 5
+  let max_health_segments = newtypes.init_player().health.value
   let Health(filled_count) = current_health
 
   let segments =
@@ -75,8 +68,6 @@ fn health_bar_view(current_health: Health) -> Element(Msg) {
   )
 }
 
-// --- Updated Nav Bar View ---
-
 pub fn nav_bar_view(player: Player) -> Element(Msg) {
   let Player(health, _, credits, _, _, _) = player
 
@@ -87,9 +78,7 @@ pub fn nav_bar_view(player: Player) -> Element(Msg) {
       ),
     ],
     [
-      // Health bar on the left
       health_bar_view(health),
-      // Credits on the right
       html.div(
         [attribute.class("text-md font-semibold text-black tracking-tight")],
         [
