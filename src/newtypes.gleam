@@ -82,8 +82,8 @@ pub fn init_player() -> Player {
   let health = Health(5)
   let points = Points(0)
   let credits = Credits(0)
-  // let orb_bag = init_orbs() |> list.shuffle |> OrbBag
-  let starter_orbs = init_orbs() |> OrbBag
+  let starter_orbs = init_orbs() |> list.shuffle |> OrbBag
+  // let starter_orbs = init_orbs() |> OrbBag
   let purchased_orbs = OrbBag([])
   let curses = Curses(curses: [NothingCurse])
 
@@ -201,6 +201,7 @@ pub fn reset_for_next_round(game: Game) -> Game {
   let starter_orbs =
     player.purchased_orbs.orbs
     |> list.append(init_player().starter_orbs.orbs)
+    |> list.shuffle
     |> OrbBag
   let player =
     Player(

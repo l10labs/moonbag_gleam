@@ -1119,6 +1119,13 @@ var trim_start_regex = /* @__PURE__ */ new RegExp(
   `^[${unicode_whitespaces}]*`
 );
 var trim_end_regex = /* @__PURE__ */ new RegExp(`[${unicode_whitespaces}]*$`);
+function random_uniform() {
+  const random_uniform_result = Math.random();
+  if (random_uniform_result === 1) {
+    return random_uniform();
+  }
+  return random_uniform_result;
+}
 function new_map() {
   return Dict.new();
 }
@@ -1133,8 +1140,23 @@ function map_insert(key, value, map4) {
   return map4.set(key, value);
 }
 
-// build/dev/javascript/gleam_stdlib/gleam/int.mjs
+// build/dev/javascript/gleam_stdlib/gleam/float.mjs
 function compare(a, b) {
+  let $ = a === b;
+  if ($) {
+    return new Eq();
+  } else {
+    let $1 = a < b;
+    if ($1) {
+      return new Lt();
+    } else {
+      return new Gt();
+    }
+  }
+}
+
+// build/dev/javascript/gleam_stdlib/gleam/int.mjs
+function compare2(a, b) {
   let $ = a === b;
   if ($) {
     return new Eq();
@@ -1594,7 +1616,7 @@ function range_loop(loop$start, loop$stop, loop$acc) {
     let start4 = loop$start;
     let stop = loop$stop;
     let acc = loop$acc;
-    let $ = compare(start4, stop);
+    let $ = compare2(start4, stop);
     if ($ instanceof Eq) {
       return prepend(stop, acc);
     } else if ($ instanceof Gt) {
@@ -1652,6 +1674,40 @@ function key_pop_loop(loop$list, loop$key, loop$checked) {
 }
 function key_pop(list4, key) {
   return key_pop_loop(list4, key, toList([]));
+}
+function shuffle_pair_unwrap_loop(loop$list, loop$acc) {
+  while (true) {
+    let list4 = loop$list;
+    let acc = loop$acc;
+    if (list4.hasLength(0)) {
+      return acc;
+    } else {
+      let elem_pair = list4.head;
+      let enumerable = list4.tail;
+      loop$list = enumerable;
+      loop$acc = prepend(elem_pair[1], acc);
+    }
+  }
+}
+function do_shuffle_by_pair_indexes(list_of_pairs) {
+  return sort(
+    list_of_pairs,
+    (a_pair, b_pair) => {
+      return compare(a_pair[0], b_pair[0]);
+    }
+  );
+}
+function shuffle(list4) {
+  let _pipe = list4;
+  let _pipe$1 = fold(
+    _pipe,
+    toList([]),
+    (acc, a) => {
+      return prepend([random_uniform(), a], acc);
+    }
+  );
+  let _pipe$2 = do_shuffle_by_pair_indexes(_pipe$1);
+  return shuffle_pair_unwrap_loop(_pipe$2, toList([]));
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/string.mjs
@@ -4353,7 +4409,8 @@ function init_player() {
   let credits = new Credits(0);
   let _block;
   let _pipe = init_orbs();
-  _block = new OrbBag(_pipe);
+  let _pipe$1 = shuffle(_pipe);
+  _block = new OrbBag(_pipe$1);
   let starter_orbs = _block;
   let purchased_orbs = new OrbBag(toList([]));
   let curses = new Curses(toList([new NothingCurse()]));
@@ -4495,7 +4552,8 @@ function reset_for_next_round(game2) {
   let _block;
   let _pipe = player.purchased_orbs.orbs;
   let _pipe$1 = append(_pipe, init_player().starter_orbs.orbs);
-  _block = new OrbBag(_pipe$1);
+  let _pipe$2 = shuffle(_pipe$1);
+  _block = new OrbBag(_pipe$2);
   let starter_orbs = _block;
   let _block$1;
   let _record = init_player();
