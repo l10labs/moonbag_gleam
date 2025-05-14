@@ -4207,7 +4207,7 @@ function start3(app, selector, start_args) {
   );
 }
 
-// build/dev/javascript/moonbag_gleam/newtypes.mjs
+// build/dev/javascript/moonbag_gleam/ty.mjs
 var Player = class extends CustomType {
   constructor(health, points, credits, starter_orbs, purchased_orbs, curses) {
     super();
@@ -4315,20 +4315,6 @@ var WinView = class extends CustomType {
   }
 };
 var LoseView = class extends CustomType {
-  constructor(x0) {
-    super();
-    this[0] = x0;
-  }
-};
-var PlayerStartGame = class extends CustomType {
-};
-var PlayerPullOrb = class extends CustomType {
-};
-var PlayerVisitMarket = class extends CustomType {
-};
-var PlayerNextRound = class extends CustomType {
-};
-var PlayerBuyItem = class extends CustomType {
   constructor(x0) {
     super();
     this[0] = x0;
@@ -4575,6 +4561,22 @@ function buy_orb(game2, item_with_key) {
   return new Game(player$1, _record$1.level, new Market(new_items));
 }
 
+// build/dev/javascript/moonbag_gleam/msg.mjs
+var PlayerStartGame = class extends CustomType {
+};
+var PlayerPullOrb = class extends CustomType {
+};
+var PlayerVisitMarket = class extends CustomType {
+};
+var PlayerNextRound = class extends CustomType {
+};
+var PlayerBuyItem = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
+
 // build/dev/javascript/lustre/lustre/event.mjs
 function is_immediate_event(name) {
   if (name === "input") {
@@ -4642,7 +4644,7 @@ function health_segment(is_filled) {
   );
 }
 function health_bar_view(current_health) {
-  let max_health_segments = 5;
+  let max_health_segments = init_player().health.value;
   let filled_count = current_health.value;
   let _block;
   let _pipe = range(1, max_health_segments);
@@ -5048,7 +5050,7 @@ function main2() {
     throw makeError(
       "let_assert",
       "moonbag_gleam",
-      15,
+      12,
       "main",
       "Pattern match failed, no pattern matched the value.",
       { value: $ }

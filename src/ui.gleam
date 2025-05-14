@@ -5,9 +5,8 @@ import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
 import lustre/event
-import newtypes.{
-  type Health, type MarketItem, type Msg, type Player, Health, Player,
-}
+import msg.{type Msg}
+import ty.{type Health, type MarketItem, type Player, Health, Player}
 
 pub fn clean_button(msg: Msg, title: String) -> Element(Msg) {
   html.button(
@@ -47,7 +46,7 @@ fn health_segment(is_filled: Bool) -> Element(Msg) {
 }
 
 fn health_bar_view(current_health: Health) -> Element(Msg) {
-  let max_health_segments = newtypes.init_player().health.value
+  let max_health_segments = ty.init_player().health.value
   let Health(filled_count) = current_health
 
   let segments =
@@ -111,9 +110,9 @@ pub fn market_item_view(item_with_key: #(Int, MarketItem)) -> Element(Msg) {
   let #(_, item) = item_with_key
   let price = item.price.value |> int.to_string
   let #(name, value) = case item.item {
-    newtypes.BombOrb(value) -> #("Bomb", value |> int.to_string)
-    newtypes.PointOrb(value) -> #("Point", value |> int.to_string)
-    newtypes.EmptyOrb -> #("Empty", 0 |> int.to_string)
+    ty.BombOrb(value) -> #("Bomb", value |> int.to_string)
+    ty.PointOrb(value) -> #("Point", value |> int.to_string)
+    ty.EmptyOrb -> #("Empty", 0 |> int.to_string)
   }
 
   html.div(
@@ -125,7 +124,7 @@ pub fn market_item_view(item_with_key: #(Int, MarketItem)) -> Element(Msg) {
     [
       html.button(
         [
-          event.on_click(newtypes.PlayerBuyItem(item_with_key)),
+          event.on_click(msg.PlayerBuyItem(item_with_key)),
           attribute.class("flex flex-col items-center space-y-1 w-full"),
         ],
         [

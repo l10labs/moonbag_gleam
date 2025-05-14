@@ -1,8 +1,9 @@
 import lustre
 import lustre/element.{type Element}
-import newtypes.{
-  type FrontendViews, type Msg, ErrorView, GameView, HomeView, LoseView,
-  MarketView, WinView,
+import msg.{type Msg}
+import ty.{
+  type FrontendViews, ErrorView, GameView, HomeView, LoseView, MarketView,
+  WinView,
 }
 import views
 
@@ -22,22 +23,22 @@ fn init(_) -> Model {
 
 fn update(model: Model, msg: Msg) -> Model {
   case model, msg {
-    HomeView, newtypes.PlayerStartGame -> GameView(newtypes.init_game())
-    LoseView(_), newtypes.PlayerStartGame -> GameView(newtypes.init_game())
-    GameView(game), newtypes.PlayerPullOrb ->
+    HomeView, msg.PlayerStartGame -> GameView(ty.init_game())
+    LoseView(_), msg.PlayerStartGame -> GameView(ty.init_game())
+    GameView(game), msg.PlayerPullOrb ->
       game
-      |> newtypes.handle_game_state_transitions
-      |> newtypes.handle_frontend_view_transitions
-    WinView(game), newtypes.PlayerVisitMarket ->
+      |> ty.handle_game_state_transitions
+      |> ty.handle_frontend_view_transitions
+    WinView(game), msg.PlayerVisitMarket ->
       game
-      |> newtypes.update_credits
+      |> ty.update_credits
       |> MarketView
-    MarketView(game), newtypes.PlayerBuyItem(item) ->
-      newtypes.buy_orb(game, item)
+    MarketView(game), msg.PlayerBuyItem(item) ->
+      ty.buy_orb(game, item)
       |> MarketView
-    MarketView(game), newtypes.PlayerNextRound ->
+    MarketView(game), msg.PlayerNextRound ->
       game
-      |> newtypes.reset_for_next_round
+      |> ty.reset_for_next_round
       |> GameView
     _, _ -> HomeView
   }

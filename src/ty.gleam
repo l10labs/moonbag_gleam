@@ -69,14 +69,6 @@ pub type FrontendViews {
   ErrorView
 }
 
-pub type Msg {
-  PlayerStartGame
-  PlayerPullOrb
-  PlayerVisitMarket
-  PlayerNextRound
-  PlayerBuyItem(#(Int, MarketItem))
-}
-
 pub fn init_player() -> Player {
   let health = Health(5)
   let points = Points(0)
