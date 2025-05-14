@@ -154,7 +154,7 @@ fn update_player_starter_orbs(player: Player, new_orb_list: List(Orb)) -> Player
   Player(..player, starter_orbs: new_orb_list |> OrbBag)
 }
 
-pub fn update_game_on_orb_pull(game: Game) -> Game {
+pub fn pull_orb(game: Game) -> Game {
   let starter_orbs_list = game.player.starter_orbs.orbs
   let orb_pull = starter_orbs_list |> get_first_orb
   let new_starter_orbs_list = starter_orbs_list |> get_remaining_orb_list

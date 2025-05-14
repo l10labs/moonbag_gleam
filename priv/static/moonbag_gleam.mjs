@@ -4440,7 +4440,7 @@ function update_player_starter_orbs(player, new_orb_list) {
     _record.curses
   );
 }
-function update_game_on_orb_pull(game2) {
+function pull_orb(game2) {
   let starter_orbs_list = game2.player.starter_orbs.orbs;
   let _block;
   let _pipe = starter_orbs_list;
@@ -5062,7 +5062,7 @@ function update2(model, message) {
   } else if (model instanceof GameView && message instanceof PlayerPullOrb) {
     let game2 = model[0];
     let _pipe = game2;
-    let _pipe$1 = update_game_on_orb_pull(_pipe);
+    let _pipe$1 = pull_orb(_pipe);
     return update_view(_pipe$1);
   } else if (model instanceof WinView && message instanceof PlayerVisitMarket) {
     let game2 = model[0];
