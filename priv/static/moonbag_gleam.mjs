@@ -4325,7 +4325,7 @@ var ErrorView = class extends CustomType {
 function build_orb(orb_type, times) {
   return repeat(orb_type, times);
 }
-function init_orbs() {
+function init_starter_orbs() {
   let _pipe = toList([
     build_orb(new PointOrb(1), 4),
     build_orb(new PointOrb(2), 3),
@@ -4336,42 +4336,42 @@ function init_orbs() {
   return flatten(_pipe);
 }
 function init_player() {
-  let health = new Health(5);
-  let points = new Points(0);
-  let credits = new Credits(0);
-  let _block;
-  let _pipe = init_orbs();
-  _block = new OrbBag(_pipe);
-  let starter_orbs = _block;
-  let purchased_orbs = new OrbBag(toList([]));
-  let curses = new Curses(toList([new NothingCurse()]));
   return new Player(
-    health,
-    points,
-    credits,
-    starter_orbs,
-    purchased_orbs,
-    curses
+    new Health(5),
+    new Points(0),
+    new Credits(0),
+    (() => {
+      let _pipe = init_starter_orbs();
+      return new OrbBag(_pipe);
+    })(),
+    (() => {
+      let _pipe = toList([]);
+      return new OrbBag(_pipe);
+    })(),
+    (() => {
+      let _pipe = toList([new NothingCurse()]);
+      return new Curses(_pipe);
+    })()
   );
 }
-function build_market_item(item, price) {
-  return new MarketItem(item, new Credits(price));
+function build_market_item(item, price, times) {
+  let _pipe = build_orb(item, times);
+  return map(
+    _pipe,
+    (_capture) => {
+      return new MarketItem(_capture, new Credits(price));
+    }
+  );
 }
 function init_market_items() {
-  return toList([
-    build_market_item(new PointOrb(1), 2),
-    build_market_item(new PointOrb(1), 2),
-    build_market_item(new PointOrb(1), 2),
-    build_market_item(new PointOrb(1), 2),
-    build_market_item(new PointOrb(2), 5),
-    build_market_item(new PointOrb(2), 5),
-    build_market_item(new PointOrb(2), 5),
-    build_market_item(new PointOrb(3), 8),
-    build_market_item(new PointOrb(3), 8),
-    build_market_item(new PointOrb(5), 20),
-    build_market_item(new PointOrb(5), 20),
-    build_market_item(new PointOrb(10), 50)
+  let _pipe = toList([
+    build_market_item(new PointOrb(1), 2, 4),
+    build_market_item(new PointOrb(2), 5, 3),
+    build_market_item(new PointOrb(3), 8, 2),
+    build_market_item(new PointOrb(5), 20, 2),
+    build_market_item(new PointOrb(10), 50, 1)
   ]);
+  return flatten(_pipe);
 }
 function init_market() {
   let _pipe = init_market_items();

@@ -68,18 +68,18 @@ pub type FrontendViews {
 }
 
 pub fn init_player() -> Player {
-  let health = Health(5)
-  let points = Points(0)
-  let credits = Credits(0)
-  // let orb_bag = init_orbs() |> list.shuffle |> OrbBag
-  let starter_orbs = init_orbs() |> OrbBag
-  let purchased_orbs = OrbBag([])
-  let curses = Curses(curses: [NothingCurse])
-
-  Player(health:, points:, credits:, starter_orbs:, curses:, purchased_orbs:)
+  Player(
+    health: Health(5),
+    points: Points(0),
+    credits: Credits(0),
+    // starter_orbs: init_orbs() |> list.shuffle |> OrbBag,
+    starter_orbs: init_starter_orbs() |> OrbBag,
+    purchased_orbs: [] |> OrbBag,
+    curses: [NothingCurse] |> Curses,
+  )
 }
 
-pub fn init_orbs() -> List(Orb) {
+pub fn init_starter_orbs() -> List(Orb) {
   [
     build_orb(PointOrb(1), times: 4),
     build_orb(PointOrb(2), times: 3),
@@ -96,23 +96,22 @@ pub fn build_orb(orb_type: Orb, times times: Int) -> List(Orb) {
 
 pub fn init_market_items() -> List(MarketItem) {
   [
-    build_market_item(PointOrb(1), 2),
-    build_market_item(PointOrb(1), 2),
-    build_market_item(PointOrb(1), 2),
-    build_market_item(PointOrb(1), 2),
-    build_market_item(PointOrb(2), 5),
-    build_market_item(PointOrb(2), 5),
-    build_market_item(PointOrb(2), 5),
-    build_market_item(PointOrb(3), 8),
-    build_market_item(PointOrb(3), 8),
-    build_market_item(PointOrb(5), 20),
-    build_market_item(PointOrb(5), 20),
-    build_market_item(PointOrb(10), 50),
+    build_market_item(PointOrb(1), price: 2, times: 4),
+    build_market_item(PointOrb(2), price: 5, times: 3),
+    build_market_item(PointOrb(3), price: 8, times: 2),
+    build_market_item(PointOrb(5), price: 20, times: 2),
+    build_market_item(PointOrb(10), price: 50, times: 1),
   ]
+  |> list.flatten
 }
 
-pub fn build_market_item(item: Orb, price: Int) -> MarketItem {
-  MarketItem(item:, price: Credits(price))
+pub fn build_market_item(
+  item: Orb,
+  price price: Int,
+  times times: Int,
+) -> List(MarketItem) {
+  build_orb(item, times)
+  |> list.map(MarketItem(_, Credits(price)))
 }
 
 pub fn init_market() -> Market {
