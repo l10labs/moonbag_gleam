@@ -123,23 +123,29 @@ pub fn init_level() -> Level {
 }
 
 pub fn init_game() -> Game {
-  let player = init_player()
-  let market = init_market()
-  let level = init_level()
+  Game(player: init_player(), market: init_market(), level: init_level())
+}
 
-  Game(player:, market:, level:)
+pub fn get_first_orb(orb_list: List(Orb)) -> Orb {
+  case orb_list {
+    [] -> EmptyOrb
+    [first, ..] -> first
+  }
+}
+
+pub fn get_remaining_orb_list(orb_list: List(Orb)) -> List(Orb) {
+  case orb_list {
+    [] -> []
+    [_, ..rest] -> rest
+  }
 }
 
 pub fn handle_game_state_transitions(game: Game) -> Game {
   let Game(player, _, _) = game
   let orb_bag = player.starter_orbs.orbs
 
-  let #(orb_pull, new_orb_bag) = case orb_bag {
-    [] -> #(EmptyOrb, [])
-    [first, ..rest] -> {
-      #(first, rest)
-    }
-  }
+  let orb_pull = orb_bag |> get_first_orb
+  let new_orb_bag = orb_bag |> get_remaining_orb_list
 
   let #(health, points) = case orb_pull {
     BombOrb(damage) -> #(player.health.value - damage, player.points.value)
