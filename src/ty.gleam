@@ -268,3 +268,13 @@ fn remove_item_from_market(
 fn check_credits(game: Game, item: MarketItem) -> Bool {
   game.player.credits.value >= item.price.value
 }
+
+pub fn enable_shuffle(game: Game) -> Game {
+  Game(
+    ..game,
+    player: Player(
+      ..game.player,
+      starter_orbs: game.player.starter_orbs.orbs |> list.shuffle |> OrbBag,
+    ),
+  )
+}

@@ -30,6 +30,7 @@ fn update(model: Model, message: Msg) -> Model {
     LoseView(_), PlayerStartGame -> ty.init_game() |> GameView
     GameView(game), PlayerPullOrb ->
       game
+      // |> ty.enable_shuffle
       |> ty.pull_orb
       |> ty.update_view
     WinView(game), PlayerVisitMarket ->
@@ -37,12 +38,12 @@ fn update(model: Model, message: Msg) -> Model {
       |> ty.reward_credits
       |> MarketView
     MarketView(game), PlayerBuyItem(item) ->
-      // ty.buy_orb(game, item)
       ty.buy_market_item(game, item)
       |> MarketView
     MarketView(game), PlayerNextRound ->
       game
       |> ty.reset_for_next_round
+      // |> ty.enable_shuffle
       |> GameView
     _, _ -> ErrorView
   }
