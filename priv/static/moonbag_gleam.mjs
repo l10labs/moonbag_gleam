@@ -1119,13 +1119,6 @@ var trim_start_regex = /* @__PURE__ */ new RegExp(
   `^[${unicode_whitespaces}]*`
 );
 var trim_end_regex = /* @__PURE__ */ new RegExp(`[${unicode_whitespaces}]*$`);
-function random_uniform() {
-  const random_uniform_result = Math.random();
-  if (random_uniform_result === 1) {
-    return random_uniform();
-  }
-  return random_uniform_result;
-}
 function new_map() {
   return Dict.new();
 }
@@ -1140,23 +1133,8 @@ function map_insert(key, value, map4) {
   return map4.set(key, value);
 }
 
-// build/dev/javascript/gleam_stdlib/gleam/float.mjs
-function compare(a, b) {
-  let $ = a === b;
-  if ($) {
-    return new Eq();
-  } else {
-    let $1 = a < b;
-    if ($1) {
-      return new Lt();
-    } else {
-      return new Gt();
-    }
-  }
-}
-
 // build/dev/javascript/gleam_stdlib/gleam/int.mjs
-function compare2(a, b) {
+function compare(a, b) {
   let $ = a === b;
   if ($) {
     return new Eq();
@@ -1616,7 +1594,7 @@ function range_loop(loop$start, loop$stop, loop$acc) {
     let start4 = loop$start;
     let stop = loop$stop;
     let acc = loop$acc;
-    let $ = compare2(start4, stop);
+    let $ = compare(start4, stop);
     if ($ instanceof Eq) {
       return prepend(stop, acc);
     } else if ($ instanceof Gt) {
@@ -1674,40 +1652,6 @@ function key_pop_loop(loop$list, loop$key, loop$checked) {
 }
 function key_pop(list4, key) {
   return key_pop_loop(list4, key, toList([]));
-}
-function shuffle_pair_unwrap_loop(loop$list, loop$acc) {
-  while (true) {
-    let list4 = loop$list;
-    let acc = loop$acc;
-    if (list4.hasLength(0)) {
-      return acc;
-    } else {
-      let elem_pair = list4.head;
-      let enumerable = list4.tail;
-      loop$list = enumerable;
-      loop$acc = prepend(elem_pair[1], acc);
-    }
-  }
-}
-function do_shuffle_by_pair_indexes(list_of_pairs) {
-  return sort(
-    list_of_pairs,
-    (a_pair, b_pair) => {
-      return compare(a_pair[0], b_pair[0]);
-    }
-  );
-}
-function shuffle(list4) {
-  let _pipe = list4;
-  let _pipe$1 = fold(
-    _pipe,
-    toList([]),
-    (acc, a) => {
-      return prepend([random_uniform(), a], acc);
-    }
-  );
-  let _pipe$2 = do_shuffle_by_pair_indexes(_pipe$1);
-  return shuffle_pair_unwrap_loop(_pipe$2, toList([]));
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/string.mjs
@@ -4318,6 +4262,8 @@ var BombOrb = class extends CustomType {
     this[0] = x0;
   }
 };
+var DoubleFuturePointsOrb = class extends CustomType {
+};
 var EmptyOrb = class extends CustomType {
 };
 var Curses = class extends CustomType {
@@ -4390,11 +4336,11 @@ function build_orb(orb_type, times) {
 }
 function init_starter_orbs() {
   let _pipe = toList([
-    build_orb(new PointOrb(1), 4),
-    build_orb(new PointOrb(2), 3),
-    build_orb(new PointOrb(3), 2),
+    build_orb(new DoubleFuturePointsOrb(), 1),
+    build_orb(new PointOrb(5), 2),
     build_orb(new BombOrb(1), 3),
-    build_orb(new BombOrb(2), 2)
+    build_orb(new BombOrb(2), 2),
+    build_orb(new BombOrb(3), 1)
   ]);
   return flatten(_pipe);
 }
@@ -4459,12 +4405,14 @@ function orb_to_string(orb) {
     })() + "\u{1F4A3} ";
   } else if (orb instanceof EmptyOrb) {
     return "";
-  } else {
+  } else if (orb instanceof PointOrb) {
     let value = orb[0];
     return (() => {
       let _pipe = value;
       return to_string(_pipe);
     })() + "\u2B50";
+  } else {
+    return "2x\u2B50";
   }
 }
 function get_first_orb(orb_list) {
@@ -4485,39 +4433,73 @@ function get_remaining_orb_list(orb_list) {
 }
 function resolve_player_orb_pull(player, orb) {
   let _block;
-  if (orb instanceof BombOrb) {
+  if (orb instanceof EmptyOrb) {
+    _block = player;
+  } else if (orb instanceof BombOrb) {
     let damage = orb[0];
-    _block = [player.health.value - damage, player.points.value];
+    let _record2 = player;
+    _block = new Player(
+      new Health(player.health.value - damage),
+      _record2.points,
+      _record2.credits,
+      _record2.last_played_orb,
+      _record2.starter_orbs,
+      _record2.purchased_orbs,
+      _record2.curses
+    );
   } else if (orb instanceof PointOrb) {
-    let points2 = orb[0];
-    _block = [player.health.value, player.points.value + points2];
+    let points = orb[0];
+    let _record2 = player;
+    _block = new Player(
+      _record2.health,
+      new Points(player.points.value + points),
+      _record2.credits,
+      _record2.last_played_orb,
+      _record2.starter_orbs,
+      _record2.purchased_orbs,
+      _record2.curses
+    );
   } else {
-    _block = [player.health.value, player.points.value];
+    let _block$12;
+    let _pipe2 = player.starter_orbs.orbs;
+    _block$12 = map(
+      _pipe2,
+      (b) => {
+        if (b instanceof PointOrb) {
+          let value = b[0];
+          return new PointOrb(2 * value);
+        } else {
+          let orb$1 = b;
+          return orb$1;
+        }
+      }
+    );
+    let new_bag = _block$12;
+    let _record2 = player;
+    _block = new Player(
+      _record2.health,
+      _record2.points,
+      _record2.credits,
+      _record2.last_played_orb,
+      new OrbBag(new_bag),
+      _record2.purchased_orbs,
+      _record2.curses
+    );
   }
-  let $ = _block;
-  let health = $[0];
-  let points = $[1];
-  let _record = player;
-  return new Player(
-    new Health(health),
-    new Points(points),
-    _record.credits,
-    orb,
-    _record.starter_orbs,
-    _record.purchased_orbs,
-    _record.curses
-  );
-}
-function update_player_starter_orbs(player, new_orb_list) {
-  let _record = player;
+  let new_player = _block;
+  let _block$1;
+  let _pipe = new_player.starter_orbs.orbs;
+  _block$1 = get_remaining_orb_list(_pipe);
+  let new_orb_list = _block$1;
+  let _record = new_player;
   return new Player(
     _record.health,
     _record.points,
     _record.credits,
-    _record.last_played_orb,
+    orb,
     (() => {
-      let _pipe = new_orb_list;
-      return new OrbBag(_pipe);
+      let _pipe$1 = new_orb_list;
+      return new OrbBag(_pipe$1);
     })(),
     _record.purchased_orbs,
     _record.curses
@@ -4530,22 +4512,17 @@ function pull_orb(game2) {
   _block = get_first_orb(_pipe);
   let orb_pull = _block;
   let _block$1;
-  let _pipe$1 = starter_orbs_list;
-  _block$1 = get_remaining_orb_list(_pipe$1);
-  let new_starter_orbs_list = _block$1;
-  let _block$2;
   let _record = game2.level;
-  _block$2 = new Level(
+  _block$1 = new Level(
     _record.current_level,
     game2.level.current_round + 1,
     _record.milestone
   );
-  let level = _block$2;
-  let _block$3;
-  let _pipe$2 = game2.player;
-  let _pipe$3 = resolve_player_orb_pull(_pipe$2, orb_pull);
-  _block$3 = update_player_starter_orbs(_pipe$3, new_starter_orbs_list);
-  let player = _block$3;
+  let level = _block$1;
+  let _block$2;
+  let _pipe$1 = game2.player;
+  _block$2 = resolve_player_orb_pull(_pipe$1, orb_pull);
+  let player = _block$2;
   let _record$1 = game2;
   return new Game(player, level, _record$1.market);
 }
@@ -4699,29 +4676,6 @@ function buy_market_item(game2, keyed_item) {
     let new_game = updated_game[0];
     return new_game;
   }
-}
-function enable_shuffle(game2) {
-  let _record = game2;
-  return new Game(
-    (() => {
-      let _record$1 = game2.player;
-      return new Player(
-        _record$1.health,
-        _record$1.points,
-        _record$1.credits,
-        _record$1.last_played_orb,
-        (() => {
-          let _pipe = game2.player.starter_orbs.orbs;
-          let _pipe$1 = shuffle(_pipe);
-          return new OrbBag(_pipe$1);
-        })(),
-        _record$1.purchased_orbs,
-        _record$1.curses
-      );
-    })(),
-    _record.level,
-    _record.market
-  );
 }
 
 // build/dev/javascript/moonbag_gleam/msg.mjs
@@ -4951,9 +4905,17 @@ function market_item_view(item_with_key, message) {
         return to_string(_pipe$1);
       })()
     ];
-  } else {
+  } else if ($1 instanceof EmptyOrb) {
     _block$1 = [
       "Empty",
+      (() => {
+        let _pipe$1 = 0;
+        return to_string(_pipe$1);
+      })()
+    ];
+  } else {
+    _block$1 = [
+      "2x Future Points",
       (() => {
         let _pipe$1 = 0;
         return to_string(_pipe$1);
@@ -5227,8 +5189,7 @@ function init(_) {
 function update2(model, message) {
   if (model instanceof HomeView && message instanceof PlayerStartGame) {
     let _pipe = init_game();
-    let _pipe$1 = enable_shuffle(_pipe);
-    return new GameView(_pipe$1);
+    return new GameView(_pipe);
   } else if (model instanceof LoseView && message instanceof PlayerStartGame) {
     let _pipe = init_game();
     return new GameView(_pipe);
@@ -5251,8 +5212,7 @@ function update2(model, message) {
     let game2 = model[0];
     let _pipe = game2;
     let _pipe$1 = reset_for_next_round(_pipe);
-    let _pipe$2 = enable_shuffle(_pipe$1);
-    return new GameView(_pipe$2);
+    return new GameView(_pipe$1);
   } else {
     return new ErrorView();
   }

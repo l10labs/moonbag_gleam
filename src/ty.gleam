@@ -33,6 +33,7 @@ pub type OrbBag {
 pub type Orb {
   PointOrb(Int)
   BombOrb(Int)
+  DoubleFuturePointsOrb
   EmptyOrb
 }
 
@@ -84,11 +85,16 @@ pub fn init_player() -> Player {
 
 fn init_starter_orbs() -> List(Orb) {
   [
-    build_orb(PointOrb(1), times: 4),
-    build_orb(PointOrb(2), times: 3),
-    build_orb(PointOrb(3), times: 2),
-    build_orb(BombOrb(1), times: 3),
-    build_orb(BombOrb(2), times: 2),
+    // build_orb(PointOrb(1), times: 4),
+    // build_orb(PointOrb(2), times: 3),
+    // build_orb(PointOrb(3), times: 2),
+    // build_orb(BombOrb(1), times: 3),
+    // build_orb(BombOrb(2), times: 2),
+    build_orb(DoubleFuturePointsOrb, 1),
+    build_orb(PointOrb(5), 2),
+    build_orb(BombOrb(1), 3),
+    build_orb(BombOrb(2), 2),
+    build_orb(BombOrb(3), 1),
   ]
   |> list.flatten
 }
@@ -134,6 +140,7 @@ pub fn orb_to_string(orb: Orb) -> String {
     BombOrb(value) -> value |> int.to_string <> "💣 "
     EmptyOrb -> ""
     PointOrb(value) -> value |> int.to_string <> "⭐"
+    DoubleFuturePointsOrb -> "2x⭐"
   }
 }
 
@@ -152,17 +159,31 @@ fn get_remaining_orb_list(orb_list: List(Orb)) -> List(Orb) {
 }
 
 fn resolve_player_orb_pull(player: Player, orb: Orb) -> Player {
-  let #(health, points) = case orb {
-    BombOrb(damage) -> #(player.health.value - damage, player.points.value)
-    PointOrb(points) -> #(player.health.value, player.points.value + points)
-    EmptyOrb -> #(player.health.value, player.points.value)
+  let new_player = case orb {
+    EmptyOrb -> player
+    BombOrb(damage) ->
+      Player(..player, health: Health(player.health.value - damage))
+    PointOrb(points) ->
+      Player(..player, points: Points(player.points.value + points))
+    DoubleFuturePointsOrb -> {
+      let new_bag =
+        player.starter_orbs.orbs
+        |> list.map(fn(b) {
+          case b {
+            PointOrb(value) -> PointOrb(2 * value)
+            orb -> orb
+          }
+        })
+      Player(..player, starter_orbs: OrbBag(new_bag))
+    }
   }
 
+  let new_orb_list = new_player.starter_orbs.orbs |> get_remaining_orb_list
+
   Player(
-    ..player,
-    health: Health(health),
-    points: Points(points),
+    ..new_player,
     last_played_orb: orb,
+    starter_orbs: new_orb_list |> OrbBag,
   )
 }
 
@@ -173,13 +194,13 @@ fn update_player_starter_orbs(player: Player, new_orb_list: List(Orb)) -> Player
 pub fn pull_orb(game: Game) -> Game {
   let starter_orbs_list = game.player.starter_orbs.orbs
   let orb_pull = starter_orbs_list |> get_first_orb
-  let new_starter_orbs_list = starter_orbs_list |> get_remaining_orb_list
+  // let new_starter_orbs_list = starter_orbs_list |> get_remaining_orb_list
   let level = Level(..game.level, current_round: game.level.current_round + 1)
 
   let player =
     game.player
     |> resolve_player_orb_pull(orb_pull)
-    |> update_player_starter_orbs(new_starter_orbs_list)
+  // |> update_player_starter_orbs(new_starter_orbs_list)
 
   Game(..game, player:, level:)
 }

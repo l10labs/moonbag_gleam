@@ -119,6 +119,7 @@ pub fn market_item_view(
     BombOrb(value) -> #("Bomb", value |> int.to_string)
     PointOrb(value) -> #("Point", value |> int.to_string)
     EmptyOrb -> #("Empty", 0 |> int.to_string)
+    ty.DoubleFuturePointsOrb -> #("2x Future Points", 0 |> int.to_string)
   }
 
   html.div(

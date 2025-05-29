@@ -28,7 +28,7 @@ fn update(model: Model, message: Msg) -> Model {
   case model, message {
     HomeView, PlayerStartGame ->
       ty.init_game()
-      |> ty.enable_shuffle
+      // |> ty.enable_shuffle
       |> GameView
     LoseView(_), PlayerStartGame -> ty.init_game() |> GameView
     GameView(game), PlayerPullOrb ->
@@ -45,7 +45,7 @@ fn update(model: Model, message: Msg) -> Model {
     MarketView(game), PlayerNextRound ->
       game
       |> ty.reset_for_next_round
-      |> ty.enable_shuffle
+      // |> ty.enable_shuffle
       |> GameView
     _, _ -> ErrorView
   }
