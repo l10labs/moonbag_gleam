@@ -7,6 +7,7 @@ import msg.{
   type Msg, PlayerBuyItem, PlayerNextRound, PlayerPullOrb, PlayerStartGame,
   PlayerVisitMarket,
 }
+import new_ui
 import ty.{type Game, Game, Points}
 import ui
 
@@ -41,12 +42,18 @@ fn centered_content_wrapper(
 }
 
 pub fn home() -> Element(Msg) {
-  centered_content_wrapper([], [
-    html.h1([attribute.class("text-6xl font-bold text-black tracking-tight")], [
-      html.text("MOON BAG"),
-    ]),
-    ui.clean_button(PlayerStartGame, "Start Game"),
-  ])
+  html.section(
+    [
+      attribute.class(
+        "min-h-screen flex flex-col items-center justify-center space-y-4",
+      ),
+    ],
+    [
+      new_ui.main_title_view("MOON BAG"),
+      new_ui.button_view(PlayerStartGame, "Start Game"),
+      new_ui.box_view("A"),
+    ],
+  )
 }
 
 pub fn game(game_data: Game) -> Element(Msg) {
@@ -63,9 +70,7 @@ pub fn game(game_data: Game) -> Element(Msg) {
         ),
       ],
       [
-        html.h1([attribute.class("text-4xl font-semibold text-black mb-4")], [
-          html.text("LEVEL " <> int.to_string(level.current_level)),
-        ]),
+        new_ui.heading_view("LEVEL " <> int.to_string(level.current_level)),
         html.div([attribute.class("flex flex-row space-x-8 mb-6")], [
           html.div([attribute.class("flex flex-col items-center")], [
             html.span(
@@ -90,7 +95,7 @@ pub fn game(game_data: Game) -> Element(Msg) {
             ui.square_view(milestone |> int.to_string),
           ]),
         ]),
-        ui.clean_button(PlayerPullOrb, "Pull Orb"),
+        new_ui.button_view(PlayerPullOrb, "Pull Orb"),
       ],
     ),
   ])
@@ -104,7 +109,7 @@ pub fn win() -> Element(Msg) {
     html.p([attribute.class("text-lg text-black mb-4")], [
       html.text("Congratulations on reaching the milestone!"),
     ]),
-    ui.clean_button(PlayerVisitMarket, "Visit the Market"),
+    new_ui.button_view(PlayerVisitMarket, "Visit the Market"),
   ])
 }
 
@@ -116,7 +121,7 @@ pub fn lose() -> Element(Msg) {
     html.p([attribute.class("text-lg text-black mb-4")], [
       html.text("Better luck next time!"),
     ]),
-    ui.clean_button(PlayerStartGame, "Restart"),
+    new_ui.button_view(PlayerStartGame, "Restart"),
   ])
 }
 
@@ -147,7 +152,7 @@ pub fn market(game_data: Game) -> Element(Msg) {
               list.map(items, ui.market_item_view(_, PlayerBuyItem)),
             )
         },
-        ui.clean_button(PlayerNextRound, "Next Round"),
+        new_ui.button_view(PlayerNextRound, "Next Round"),
       ],
     ),
   ])

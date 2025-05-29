@@ -4059,6 +4059,9 @@ function text3(content) {
 function h1(attrs, children) {
   return element2("h1", attrs, children);
 }
+function h2(attrs, children) {
+  return element2("h2", attrs, children);
+}
 function h4(attrs, children) {
   return element2("h4", attrs, children);
 }
@@ -4067,6 +4070,9 @@ function main(attrs, children) {
 }
 function nav(attrs, children) {
   return element2("nav", attrs, children);
+}
+function section(attrs, children) {
+  return element2("section", attrs, children);
 }
 function div(attrs, children) {
   return element2("div", attrs, children);
@@ -4657,18 +4663,55 @@ function on_click(msg) {
   return on("click", success(msg));
 }
 
-// build/dev/javascript/moonbag_gleam/ui.mjs
-function clean_button(message, title) {
+// build/dev/javascript/moonbag_gleam/new_ui.mjs
+function button_view(msg, text4) {
   return button(
     toList([
+      on_click(msg),
       class$(
-        "px-8 py-3 mt-4 font-semibold text-sm border-2 border-black rounded tracking-wider uppercase hover:bg-black hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black transition-colors duration-150 ease-in-out"
-      ),
-      on_click(message)
+        "\n        font-semibold\n        py-2\n        px-6\n        border\n        border-black\n        hover:bg-black\n        hover:text-white\n        hover:border-white\n        transition-colors\n        duration-500\n        ease-in-out\n    "
+      )
     ]),
-    toList([text3(title)])
+    toList([text3(text4)])
   );
 }
+function main_title_view(text4) {
+  return h1(
+    toList([
+      class$(
+        "\n        text-5xl\n        md:text-6xl\n        lg:text-7xl\n        font-extrabold\n        text-black\n        text-center\n        tracking-tight\n        leading-tight\n    "
+      )
+    ]),
+    toList([text3(text4)])
+  );
+}
+function heading_view(text4) {
+  return h2(
+    toList([
+      class$(
+        "\n        text-2xl\n        sm:text-3xl\n        font-bold\n        text-black\n        tracking-tight\n    "
+      )
+    ]),
+    toList([text3(text4)])
+  );
+}
+function box_view(content) {
+  return div(
+    toList([
+      class$(
+        "\n        flex\n        items-center\n        justify-center\n        aspect-square\n        border\n        border-black\n        p-4\n    "
+      )
+    ]),
+    toList([
+      span(
+        toList([class$("text-4xl")]),
+        toList([text3(content)])
+      )
+    ])
+  );
+}
+
+// build/dev/javascript/moonbag_gleam/ui.mjs
 function health_segment(is_filled) {
   let base_class = "w-4 h-6";
   let filled_class = "bg-black";
@@ -4863,16 +4906,16 @@ function centered_content_wrapper(additional_styles, content) {
   );
 }
 function home() {
-  return centered_content_wrapper(
-    toList([]),
+  return section(
     toList([
-      h1(
-        toList([
-          class$("text-6xl font-bold text-black tracking-tight")
-        ]),
-        toList([text3("MOON BAG")])
-      ),
-      clean_button(new PlayerStartGame(), "Start Game")
+      class$(
+        "min-h-screen flex flex-col items-center justify-center space-y-4"
+      )
+    ]),
+    toList([
+      main_title_view("MOON BAG"),
+      button_view(new PlayerStartGame(), "Start Game"),
+      box_view("A")
     ])
   );
 }
@@ -4894,10 +4937,7 @@ function game(game_data) {
           )
         ]),
         toList([
-          h1(
-            toList([class$("text-4xl font-semibold text-black mb-4")]),
-            toList([text3("LEVEL " + to_string(level.current_level))])
-          ),
+          heading_view("LEVEL " + to_string(level.current_level)),
           div(
             toList([class$("flex flex-row space-x-8 mb-6")]),
             toList([
@@ -4941,7 +4981,7 @@ function game(game_data) {
               )
             ])
           ),
-          clean_button(new PlayerPullOrb(), "Pull Orb")
+          button_view(new PlayerPullOrb(), "Pull Orb")
         ])
       )
     ])
@@ -4959,7 +4999,7 @@ function win() {
         toList([class$("text-lg text-black mb-4")]),
         toList([text3("Congratulations on reaching the milestone!")])
       ),
-      clean_button(new PlayerVisitMarket(), "Visit the Market")
+      button_view(new PlayerVisitMarket(), "Visit the Market")
     ])
   );
 }
@@ -4975,7 +5015,7 @@ function lose() {
         toList([class$("text-lg text-black mb-4")]),
         toList([text3("Better luck next time!")])
       ),
-      clean_button(new PlayerStartGame(), "Restart")
+      button_view(new PlayerStartGame(), "Restart")
     ])
   );
 }
@@ -5026,7 +5066,7 @@ function market(game_data) {
               );
             }
           })(),
-          clean_button(new PlayerNextRound(), "Next Round")
+          button_view(new PlayerNextRound(), "Next Round")
         ])
       )
     ])
