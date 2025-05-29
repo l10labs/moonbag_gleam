@@ -118,8 +118,9 @@ pub fn market_item_view(
   let #(name, value) = case item.item {
     BombOrb(value) -> #("Bomb", value |> int.to_string)
     PointOrb(value) -> #("Point", value |> int.to_string)
-    EmptyOrb -> #("Empty", 0 |> int.to_string)
-    ty.DoubleFuturePointsOrb -> #("2x Future Points", 0 |> int.to_string)
+    EmptyOrb -> #("Empty", "0")
+    ty.DoubleFuturePointsOrb -> #("2x Future Points", "0")
+    ty.PointsPerItemInBagOrb -> #("Points per item in bag", "0")
   }
 
   html.div(

@@ -77,13 +77,11 @@ pub fn box_view(content: String) {
         aspect-square
         border
         border-black
-        w-24
-        h-24
         p-2
     ",
       ),
     ],
-    [html.span([attribute.class("text-3xl")], [html.text(content)])],
+    [html.span([attribute.class("text-l")], [html.text(content)])],
   )
 }
 
@@ -91,5 +89,25 @@ pub fn game_element_view(title: String, content: String) {
   html.div(
     [attribute.class("flex flex-col items-center justify-center gap-1")],
     [html.text(title), box_view(content)],
+  )
+}
+
+pub fn pull_orb_view(text: String) {
+  html.div(
+    [
+      attribute.class(
+        "
+        flex
+        items-center
+        justify-center
+        border
+        border-black
+        h-16
+        p-2
+        text-3xl
+    ",
+      ),
+    ],
+    [html.text(text)],
   )
 }

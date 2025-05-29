@@ -64,6 +64,7 @@ pub fn game(game_data: Game) -> Element(Msg) {
   let round = level.current_round
   let last_orb = player.last_played_orb
   let next_orb = player.starter_orbs.orbs |> ty.get_first_orb
+  let items_in_bag = player.starter_orbs.orbs |> list.length
 
   html.section(
     [
@@ -78,14 +79,22 @@ pub fn game(game_data: Game) -> Element(Msg) {
         new_ui.game_element_view("Points", points |> int.to_string),
         new_ui.game_element_view("Milestone", milestone |> int.to_string),
         new_ui.game_element_view("Credits", "$" <> credits |> int.to_string),
+        new_ui.game_element_view("Items in Bag", items_in_bag |> int.to_string),
       ]),
-      html.div([attribute.class("flex flex-col space-x-8 mb-6")], [
-        new_ui.game_element_view(
-          "Round " <> round |> int.to_string,
-          last_orb |> ty.orb_to_string,
-        ),
-        html.text("Next Orb: " <> next_orb |> ty.orb_to_string),
-      ]),
+      html.div(
+        [
+          attribute.class(
+            "flex flex-col space-x-8 mb-6 items-center justify-center",
+          ),
+        ],
+        [
+          html.div([], [
+            html.text("Round " <> round |> int.to_string <> ": "),
+            new_ui.pull_orb_view(last_orb |> ty.orb_to_string),
+          ]),
+          html.text("Next Orb: " <> next_orb |> ty.orb_to_string),
+        ],
+      ),
       new_ui.button_view(PlayerPullOrb, "Pull Orb"),
     ],
   )

@@ -36,12 +36,12 @@ var List = class {
   // @internal
   countLength() {
     let current = this;
-    let length2 = 0;
+    let length3 = 0;
     while (current) {
       current = current.tail;
-      length2++;
+      length3++;
     }
-    return length2 - 1;
+    return length3 - 1;
   }
 };
 function prepend(element3, tail) {
@@ -1158,6 +1158,22 @@ var Ascending = class extends CustomType {
 };
 var Descending = class extends CustomType {
 };
+function length_loop(loop$list, loop$count) {
+  while (true) {
+    let list4 = loop$list;
+    let count = loop$count;
+    if (list4.atLeastLength(1)) {
+      let list$1 = list4.tail;
+      loop$list = list$1;
+      loop$count = count + 1;
+    } else {
+      return count;
+    }
+  }
+}
+function length(list4) {
+  return length_loop(list4, 0);
+}
 function reverse_and_prepend(loop$prefix, loop$suffix) {
   while (true) {
     let prefix = loop$prefix;
@@ -4250,11 +4266,7 @@ var OrbBag = class extends CustomType {
     this.orbs = orbs;
   }
 };
-var PointOrb = class extends CustomType {
-  constructor(x0) {
-    super();
-    this[0] = x0;
-  }
+var EmptyOrb = class extends CustomType {
 };
 var BombOrb = class extends CustomType {
   constructor(x0) {
@@ -4262,9 +4274,15 @@ var BombOrb = class extends CustomType {
     this[0] = x0;
   }
 };
+var PointOrb = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
 var DoubleFuturePointsOrb = class extends CustomType {
 };
-var EmptyOrb = class extends CustomType {
+var PointsPerItemInBagOrb = class extends CustomType {
 };
 var Curses = class extends CustomType {
   constructor(curses) {
@@ -4336,11 +4354,12 @@ function build_orb(orb_type, times) {
 }
 function init_starter_orbs() {
   let _pipe = toList([
-    build_orb(new DoubleFuturePointsOrb(), 1),
+    build_orb(new PointsPerItemInBagOrb(), 1),
     build_orb(new PointOrb(5), 2),
     build_orb(new BombOrb(1), 3),
     build_orb(new BombOrb(2), 2),
-    build_orb(new BombOrb(3), 1)
+    build_orb(new BombOrb(3), 1),
+    build_orb(new DoubleFuturePointsOrb(), 1)
   ]);
   return flatten(_pipe);
 }
@@ -4411,8 +4430,10 @@ function orb_to_string(orb) {
       let _pipe = value;
       return to_string(_pipe);
     })() + "\u2B50";
-  } else {
+  } else if (orb instanceof DoubleFuturePointsOrb) {
     return "2x\u2B50";
+  } else {
+    return "Points per item in bag";
   }
 }
 function get_first_orb(orb_list) {
@@ -4459,7 +4480,7 @@ function resolve_player_orb_pull(player, orb) {
       _record2.purchased_orbs,
       _record2.curses
     );
-  } else {
+  } else if (orb instanceof DoubleFuturePointsOrb) {
     let _block$12;
     let _pipe2 = player.starter_orbs.orbs;
     _block$12 = map(
@@ -4482,6 +4503,21 @@ function resolve_player_orb_pull(player, orb) {
       _record2.credits,
       _record2.last_played_orb,
       new OrbBag(new_bag),
+      _record2.purchased_orbs,
+      _record2.curses
+    );
+  } else {
+    let _block$12;
+    let _pipe2 = player.starter_orbs.orbs;
+    _block$12 = length(_pipe2);
+    let points = _block$12;
+    let _record2 = player;
+    _block = new Player(
+      _record2.health,
+      new Points(player.points.value + points),
+      _record2.credits,
+      _record2.last_played_orb,
+      _record2.starter_orbs,
       _record2.purchased_orbs,
       _record2.curses
     );
@@ -4765,12 +4801,12 @@ function box_view(content) {
   return div(
     toList([
       class$(
-        "\n        flex\n        items-center\n        justify-center\n        aspect-square\n        border\n        border-black\n        w-24\n        h-24\n        p-2\n    "
+        "\n        flex\n        items-center\n        justify-center\n        aspect-square\n        border\n        border-black\n        p-2\n    "
       )
     ]),
     toList([
       span(
-        toList([class$("text-3xl")]),
+        toList([class$("text-l")]),
         toList([text3(content)])
       )
     ])
@@ -4782,6 +4818,16 @@ function game_element_view(title, content) {
       class$("flex flex-col items-center justify-center gap-1")
     ]),
     toList([text3(title), box_view(content)])
+  );
+}
+function pull_orb_view(text4) {
+  return div(
+    toList([
+      class$(
+        "\n        flex\n        items-center\n        justify-center\n        border\n        border-black\n        h-16\n        p-2\n        text-3xl\n    "
+      )
+    ]),
+    toList([text3(text4)])
   );
 }
 
@@ -4906,21 +4952,11 @@ function market_item_view(item_with_key, message) {
       })()
     ];
   } else if ($1 instanceof EmptyOrb) {
-    _block$1 = [
-      "Empty",
-      (() => {
-        let _pipe$1 = 0;
-        return to_string(_pipe$1);
-      })()
-    ];
+    _block$1 = ["Empty", "0"];
+  } else if ($1 instanceof DoubleFuturePointsOrb) {
+    _block$1 = ["2x Future Points", "0"];
   } else {
-    _block$1 = [
-      "2x Future Points",
-      (() => {
-        let _pipe$1 = 0;
-        return to_string(_pipe$1);
-      })()
-    ];
+    _block$1 = ["Points per item in bag", "0"];
   }
   let $ = _block$1;
   let name = $[0];
@@ -5015,6 +5051,10 @@ function game(game_data) {
   let _pipe = player.starter_orbs.orbs;
   _block = get_first_orb(_pipe);
   let next_orb = _block;
+  let _block$1;
+  let _pipe$1 = player.starter_orbs.orbs;
+  _block$1 = length(_pipe$1);
+  let items_in_bag = _block$1;
   return section(
     toList([
       class$(
@@ -5029,50 +5069,68 @@ function game(game_data) {
           game_element_view(
             "Health",
             (() => {
-              let _pipe$1 = health;
-              return to_string(_pipe$1);
+              let _pipe$2 = health;
+              return to_string(_pipe$2);
             })()
           ),
           game_element_view(
             "Points",
             (() => {
-              let _pipe$1 = points;
-              return to_string(_pipe$1);
+              let _pipe$2 = points;
+              return to_string(_pipe$2);
             })()
           ),
           game_element_view(
             "Milestone",
             (() => {
-              let _pipe$1 = milestone;
-              return to_string(_pipe$1);
+              let _pipe$2 = milestone;
+              return to_string(_pipe$2);
             })()
           ),
           game_element_view(
             "Credits",
             "$" + (() => {
-              let _pipe$1 = credits;
-              return to_string(_pipe$1);
+              let _pipe$2 = credits;
+              return to_string(_pipe$2);
+            })()
+          ),
+          game_element_view(
+            "Items in Bag",
+            (() => {
+              let _pipe$2 = items_in_bag;
+              return to_string(_pipe$2);
             })()
           )
         ])
       ),
       div(
-        toList([class$("flex flex-col space-x-8 mb-6")]),
         toList([
-          game_element_view(
-            "Round " + (() => {
-              let _pipe$1 = round3;
-              return to_string(_pipe$1);
-            })(),
-            (() => {
-              let _pipe$1 = last_orb;
-              return orb_to_string(_pipe$1);
-            })()
+          class$(
+            "flex flex-col space-x-8 mb-6 items-center justify-center"
+          )
+        ]),
+        toList([
+          div(
+            toList([]),
+            toList([
+              text3(
+                "Round " + (() => {
+                  let _pipe$2 = round3;
+                  return to_string(_pipe$2);
+                })() + ": "
+              ),
+              pull_orb_view(
+                (() => {
+                  let _pipe$2 = last_orb;
+                  return orb_to_string(_pipe$2);
+                })()
+              )
+            ])
           ),
           text3(
             "Next Orb: " + (() => {
-              let _pipe$1 = next_orb;
-              return orb_to_string(_pipe$1);
+              let _pipe$2 = next_orb;
+              return orb_to_string(_pipe$2);
             })()
           )
         ])

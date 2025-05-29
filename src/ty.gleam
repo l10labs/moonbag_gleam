@@ -31,10 +31,11 @@ pub type OrbBag {
 }
 
 pub type Orb {
-  PointOrb(Int)
-  BombOrb(Int)
-  DoubleFuturePointsOrb
   EmptyOrb
+  BombOrb(Int)
+  PointOrb(Int)
+  DoubleFuturePointsOrb
+  PointsPerItemInBagOrb
 }
 
 pub type Curses {
@@ -90,11 +91,12 @@ fn init_starter_orbs() -> List(Orb) {
     // build_orb(PointOrb(3), times: 2),
     // build_orb(BombOrb(1), times: 3),
     // build_orb(BombOrb(2), times: 2),
-    build_orb(DoubleFuturePointsOrb, 1),
+    build_orb(PointsPerItemInBagOrb, 1),
     build_orb(PointOrb(5), 2),
     build_orb(BombOrb(1), 3),
     build_orb(BombOrb(2), 2),
     build_orb(BombOrb(3), 1),
+    build_orb(DoubleFuturePointsOrb, 1),
   ]
   |> list.flatten
 }
@@ -141,6 +143,7 @@ pub fn orb_to_string(orb: Orb) -> String {
     EmptyOrb -> ""
     PointOrb(value) -> value |> int.to_string <> "⭐"
     DoubleFuturePointsOrb -> "2x⭐"
+    PointsPerItemInBagOrb -> "Points per item in bag"
   }
 }
 
@@ -175,6 +178,10 @@ fn resolve_player_orb_pull(player: Player, orb: Orb) -> Player {
           }
         })
       Player(..player, starter_orbs: OrbBag(new_bag))
+    }
+    PointsPerItemInBagOrb -> {
+      let points = player.starter_orbs.orbs |> list.length
+      Player(..player, points: Points(player.points.value + points))
     }
   }
 
