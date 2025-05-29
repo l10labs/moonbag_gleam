@@ -61,6 +61,7 @@ pub fn game(game_data: Game) -> Element(Msg) {
   let Points(milestone) = level.milestone
   let health = player.health.value
   let credits = player.credits.value
+  let round = level.current_round
   let last_orb = player.last_played_orb
   let next_orb = player.starter_orbs.orbs |> ty.get_first_orb
 
@@ -79,7 +80,10 @@ pub fn game(game_data: Game) -> Element(Msg) {
         new_ui.game_element_view("Credits", "$" <> credits |> int.to_string),
       ]),
       html.div([attribute.class("flex flex-col space-x-8 mb-6")], [
-        new_ui.game_element_view("Orb Pulled", last_orb |> ty.orb_to_string),
+        new_ui.game_element_view(
+          "Round " <> round |> int.to_string,
+          last_orb |> ty.orb_to_string,
+        ),
         html.text("Next Orb: " <> next_orb |> ty.orb_to_string),
       ]),
       new_ui.button_view(PlayerPullOrb, "Pull Orb"),

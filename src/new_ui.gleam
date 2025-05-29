@@ -83,7 +83,7 @@ pub fn box_view(content: String) {
     ",
       ),
     ],
-    [html.span([attribute.class("text-m")], [html.text(content)])],
+    [html.span([attribute.class("text-3xl")], [html.text(content)])],
   )
 }
 

@@ -131,9 +131,9 @@ pub fn init_game() -> Game {
 
 pub fn orb_to_string(orb: Orb) -> String {
   case orb {
-    BombOrb(value) -> "Bomb " <> value |> int.to_string
+    BombOrb(value) -> value |> int.to_string <> "💣 "
     EmptyOrb -> ""
-    PointOrb(value) -> "Point " <> value |> int.to_string
+    PointOrb(value) -> value |> int.to_string <> "⭐"
   }
 }
 
@@ -174,13 +174,14 @@ pub fn pull_orb(game: Game) -> Game {
   let starter_orbs_list = game.player.starter_orbs.orbs
   let orb_pull = starter_orbs_list |> get_first_orb
   let new_starter_orbs_list = starter_orbs_list |> get_remaining_orb_list
+  let level = Level(..game.level, current_round: game.level.current_round + 1)
 
   let player =
     game.player
     |> resolve_player_orb_pull(orb_pull)
     |> update_player_starter_orbs(new_starter_orbs_list)
 
-  Game(..game, player:)
+  Game(..game, player:, level:)
 }
 
 pub fn update_view(game: Game) -> FrontendViews {

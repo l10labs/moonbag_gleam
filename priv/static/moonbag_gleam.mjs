@@ -4453,18 +4453,18 @@ function init_game() {
 function orb_to_string(orb) {
   if (orb instanceof BombOrb) {
     let value = orb[0];
-    return "Bomb " + (() => {
+    return (() => {
       let _pipe = value;
       return to_string(_pipe);
-    })();
+    })() + "\u{1F4A3} ";
   } else if (orb instanceof EmptyOrb) {
     return "";
   } else {
     let value = orb[0];
-    return "Point " + (() => {
+    return (() => {
       let _pipe = value;
       return to_string(_pipe);
-    })();
+    })() + "\u2B50";
   }
 }
 function get_first_orb(orb_list) {
@@ -4534,12 +4534,20 @@ function pull_orb(game2) {
   _block$1 = get_remaining_orb_list(_pipe$1);
   let new_starter_orbs_list = _block$1;
   let _block$2;
+  let _record = game2.level;
+  _block$2 = new Level(
+    _record.current_level,
+    game2.level.current_round + 1,
+    _record.milestone
+  );
+  let level = _block$2;
+  let _block$3;
   let _pipe$2 = game2.player;
   let _pipe$3 = resolve_player_orb_pull(_pipe$2, orb_pull);
-  _block$2 = update_player_starter_orbs(_pipe$3, new_starter_orbs_list);
-  let player = _block$2;
-  let _record = game2;
-  return new Game(player, _record.level, _record.market);
+  _block$3 = update_player_starter_orbs(_pipe$3, new_starter_orbs_list);
+  let player = _block$3;
+  let _record$1 = game2;
+  return new Game(player, level, _record$1.market);
 }
 function update_view(game2) {
   let player = game2.player;
@@ -4808,7 +4816,7 @@ function box_view(content) {
     ]),
     toList([
       span(
-        toList([class$("text-m")]),
+        toList([class$("text-3xl")]),
         toList([text3(content)])
       )
     ])
@@ -5039,6 +5047,7 @@ function game(game_data) {
   let milestone = $1.value;
   let health = player.health.value;
   let credits = player.credits.value;
+  let round3 = level.current_round;
   let last_orb = player.last_played_orb;
   let _block;
   let _pipe = player.starter_orbs.orbs;
@@ -5089,7 +5098,10 @@ function game(game_data) {
         toList([class$("flex flex-col space-x-8 mb-6")]),
         toList([
           game_element_view(
-            "Orb Pulled",
+            "Round " + (() => {
+              let _pipe$1 = round3;
+              return to_string(_pipe$1);
+            })(),
             (() => {
               let _pipe$1 = last_orb;
               return orb_to_string(_pipe$1);
