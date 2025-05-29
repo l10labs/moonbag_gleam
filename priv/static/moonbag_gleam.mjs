@@ -1119,6 +1119,13 @@ var trim_start_regex = /* @__PURE__ */ new RegExp(
   `^[${unicode_whitespaces}]*`
 );
 var trim_end_regex = /* @__PURE__ */ new RegExp(`[${unicode_whitespaces}]*$`);
+function random_uniform() {
+  const random_uniform_result = Math.random();
+  if (random_uniform_result === 1) {
+    return random_uniform();
+  }
+  return random_uniform_result;
+}
 function new_map() {
   return Dict.new();
 }
@@ -1133,8 +1140,23 @@ function map_insert(key, value, map4) {
   return map4.set(key, value);
 }
 
-// build/dev/javascript/gleam_stdlib/gleam/int.mjs
+// build/dev/javascript/gleam_stdlib/gleam/float.mjs
 function compare(a, b) {
+  let $ = a === b;
+  if ($) {
+    return new Eq();
+  } else {
+    let $1 = a < b;
+    if ($1) {
+      return new Lt();
+    } else {
+      return new Gt();
+    }
+  }
+}
+
+// build/dev/javascript/gleam_stdlib/gleam/int.mjs
+function compare2(a, b) {
   let $ = a === b;
   if ($) {
     return new Eq();
@@ -1594,7 +1616,7 @@ function range_loop(loop$start, loop$stop, loop$acc) {
     let start4 = loop$start;
     let stop = loop$stop;
     let acc = loop$acc;
-    let $ = compare(start4, stop);
+    let $ = compare2(start4, stop);
     if ($ instanceof Eq) {
       return prepend(stop, acc);
     } else if ($ instanceof Gt) {
@@ -1652,6 +1674,40 @@ function key_pop_loop(loop$list, loop$key, loop$checked) {
 }
 function key_pop(list4, key) {
   return key_pop_loop(list4, key, toList([]));
+}
+function shuffle_pair_unwrap_loop(loop$list, loop$acc) {
+  while (true) {
+    let list4 = loop$list;
+    let acc = loop$acc;
+    if (list4.hasLength(0)) {
+      return acc;
+    } else {
+      let elem_pair = list4.head;
+      let enumerable = list4.tail;
+      loop$list = enumerable;
+      loop$acc = prepend(elem_pair[1], acc);
+    }
+  }
+}
+function do_shuffle_by_pair_indexes(list_of_pairs) {
+  return sort(
+    list_of_pairs,
+    (a_pair, b_pair) => {
+      return compare(a_pair[0], b_pair[0]);
+    }
+  );
+}
+function shuffle(list4) {
+  let _pipe = list4;
+  let _pipe$1 = fold(
+    _pipe,
+    toList([]),
+    (acc, a) => {
+      return prepend([random_uniform(), a], acc);
+    }
+  );
+  let _pipe$2 = do_shuffle_by_pair_indexes(_pipe$1);
+  return shuffle_pair_unwrap_loop(_pipe$2, toList([]));
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/string.mjs
@@ -4215,11 +4271,12 @@ function start3(app, selector, start_args) {
 
 // build/dev/javascript/moonbag_gleam/ty.mjs
 var Player = class extends CustomType {
-  constructor(health, points, credits, starter_orbs, purchased_orbs, curses) {
+  constructor(health, points, credits, last_played_orb, starter_orbs, purchased_orbs, curses) {
     super();
     this.health = health;
     this.points = points;
     this.credits = credits;
+    this.last_played_orb = last_played_orb;
     this.starter_orbs = starter_orbs;
     this.purchased_orbs = purchased_orbs;
     this.curses = curses;
@@ -4346,6 +4403,7 @@ function init_player() {
     new Health(5),
     new Points(0),
     new Credits(0),
+    new EmptyOrb(),
     (() => {
       let _pipe = init_starter_orbs();
       return new OrbBag(_pipe);
@@ -4392,6 +4450,23 @@ function init_level() {
 function init_game() {
   return new Game(init_player(), init_level(), init_market());
 }
+function orb_to_string(orb) {
+  if (orb instanceof BombOrb) {
+    let value = orb[0];
+    return "Bomb " + (() => {
+      let _pipe = value;
+      return to_string(_pipe);
+    })();
+  } else if (orb instanceof EmptyOrb) {
+    return "";
+  } else {
+    let value = orb[0];
+    return "Point " + (() => {
+      let _pipe = value;
+      return to_string(_pipe);
+    })();
+  }
+}
 function get_first_orb(orb_list) {
   if (orb_list.hasLength(0)) {
     return new EmptyOrb();
@@ -4427,6 +4502,7 @@ function resolve_player_orb_pull(player, orb) {
     new Health(health),
     new Points(points),
     _record.credits,
+    orb,
     _record.starter_orbs,
     _record.purchased_orbs,
     _record.curses
@@ -4438,6 +4514,7 @@ function update_player_starter_orbs(player, new_orb_list) {
     _record.health,
     _record.points,
     _record.credits,
+    _record.last_played_orb,
     (() => {
       let _pipe = new_orb_list;
       return new OrbBag(_pipe);
@@ -4500,6 +4577,7 @@ function reward_credits(game2) {
     _record.health,
     _record.points,
     new Credits(new_credits),
+    _record.last_played_orb,
     _record.starter_orbs,
     _record.purchased_orbs,
     _record.curses
@@ -4523,6 +4601,7 @@ function reset_for_next_round(game2) {
     _record.health,
     _record.points,
     player.credits,
+    _record.last_played_orb,
     starter_orbs,
     player.purchased_orbs,
     player.curses
@@ -4544,6 +4623,7 @@ function deduct_credits_for_item(game2, item) {
     _record.health,
     _record.points,
     new Credits(credits),
+    _record.last_played_orb,
     _record.starter_orbs,
     _record.purchased_orbs,
     _record.curses
@@ -4564,6 +4644,7 @@ function add_new_item_to_player(game2, item) {
     _record.health,
     _record.points,
     _record.credits,
+    _record.last_played_orb,
     _record.starter_orbs,
     purchased_orbs,
     _record.curses
@@ -4610,6 +4691,29 @@ function buy_market_item(game2, keyed_item) {
     let new_game = updated_game[0];
     return new_game;
   }
+}
+function enable_shuffle(game2) {
+  let _record = game2;
+  return new Game(
+    (() => {
+      let _record$1 = game2.player;
+      return new Player(
+        _record$1.health,
+        _record$1.points,
+        _record$1.credits,
+        _record$1.last_played_orb,
+        (() => {
+          let _pipe = game2.player.starter_orbs.orbs;
+          let _pipe$1 = shuffle(_pipe);
+          return new OrbBag(_pipe$1);
+        })(),
+        _record$1.purchased_orbs,
+        _record$1.curses
+      );
+    })(),
+    _record.level,
+    _record.market
+  );
 }
 
 // build/dev/javascript/moonbag_gleam/msg.mjs
@@ -4699,15 +4803,23 @@ function box_view(content) {
   return div(
     toList([
       class$(
-        "\n        flex\n        items-center\n        justify-center\n        aspect-square\n        border\n        border-black\n        p-4\n    "
+        "\n        flex\n        items-center\n        justify-center\n        aspect-square\n        border\n        border-black\n        w-24\n        h-24\n        p-2\n    "
       )
     ]),
     toList([
       span(
-        toList([class$("text-4xl")]),
+        toList([class$("text-m")]),
         toList([text3(content)])
       )
     ])
+  );
+}
+function game_element_view(title, content) {
+  return div(
+    toList([
+      class$("flex flex-col items-center justify-center gap-1")
+    ]),
+    toList([text3(title), box_view(content)])
   );
 }
 
@@ -4914,8 +5026,7 @@ function home() {
     ]),
     toList([
       main_title_view("MOON BAG"),
-      button_view(new PlayerStartGame(), "Start Game"),
-      box_view("A")
+      button_view(new PlayerStartGame(), "Start Game")
     ])
   );
 }
@@ -4926,64 +5037,73 @@ function game(game_data) {
   let points = $.value;
   let $1 = level.milestone;
   let milestone = $1.value;
-  return page_wrapper(
-    toList([]),
+  let health = player.health.value;
+  let credits = player.credits.value;
+  let last_orb = player.last_played_orb;
+  let _block;
+  let _pipe = player.starter_orbs.orbs;
+  _block = get_first_orb(_pipe);
+  let next_orb = _block;
+  return section(
     toList([
-      nav_bar_view(player),
-      main(
-        toList([
-          class$(
-            "flex-grow flex flex-col items-center justify-center p-8 space-y-6"
-          )
-        ]),
-        toList([
-          heading_view("LEVEL " + to_string(level.current_level)),
-          div(
-            toList([class$("flex flex-row space-x-8 mb-6")]),
-            toList([
-              div(
-                toList([class$("flex flex-col items-center")]),
-                toList([
-                  span(
-                    toList([
-                      class$(
-                        "text-sm text-black mb-1 uppercase tracking-wider"
-                      )
-                    ]),
-                    toList([text3("Points")])
-                  ),
-                  square_view(
-                    (() => {
-                      let _pipe = points;
-                      return to_string(_pipe);
-                    })()
-                  )
-                ])
-              ),
-              div(
-                toList([class$("flex flex-col items-center")]),
-                toList([
-                  span(
-                    toList([
-                      class$(
-                        "text-sm text-black mb-1 uppercase tracking-wider"
-                      )
-                    ]),
-                    toList([text3("Milestone")])
-                  ),
-                  square_view(
-                    (() => {
-                      let _pipe = milestone;
-                      return to_string(_pipe);
-                    })()
-                  )
-                ])
-              )
-            ])
-          ),
-          button_view(new PlayerPullOrb(), "Pull Orb")
-        ])
+      class$(
+        "min-h-screen flex flex-col items-center justify-center space-y-4"
       )
+    ]),
+    toList([
+      heading_view("LEVEL " + to_string(level.current_level)),
+      div(
+        toList([class$("flex flex-row space-x-8 mb-6")]),
+        toList([
+          game_element_view(
+            "Health",
+            (() => {
+              let _pipe$1 = health;
+              return to_string(_pipe$1);
+            })()
+          ),
+          game_element_view(
+            "Points",
+            (() => {
+              let _pipe$1 = points;
+              return to_string(_pipe$1);
+            })()
+          ),
+          game_element_view(
+            "Milestone",
+            (() => {
+              let _pipe$1 = milestone;
+              return to_string(_pipe$1);
+            })()
+          ),
+          game_element_view(
+            "Credits",
+            "$" + (() => {
+              let _pipe$1 = credits;
+              return to_string(_pipe$1);
+            })()
+          )
+        ])
+      ),
+      div(
+        toList([class$("flex flex-col space-x-8 mb-6")]),
+        toList([
+          game_element_view(
+            "Orb Pulled",
+            (() => {
+              let _pipe$1 = last_orb;
+              return orb_to_string(_pipe$1);
+            })()
+          ),
+          text3(
+            "Next Orb: " + (() => {
+              let _pipe$1 = next_orb;
+              return orb_to_string(_pipe$1);
+            })()
+          )
+        ])
+      ),
+      button_view(new PlayerPullOrb(), "Pull Orb")
     ])
   );
 }
@@ -5095,7 +5215,8 @@ function init(_) {
 function update2(model, message) {
   if (model instanceof HomeView && message instanceof PlayerStartGame) {
     let _pipe = init_game();
-    return new GameView(_pipe);
+    let _pipe$1 = enable_shuffle(_pipe);
+    return new GameView(_pipe$1);
   } else if (model instanceof LoseView && message instanceof PlayerStartGame) {
     let _pipe = init_game();
     return new GameView(_pipe);
@@ -5118,7 +5239,8 @@ function update2(model, message) {
     let game2 = model[0];
     let _pipe = game2;
     let _pipe$1 = reset_for_next_round(_pipe);
-    return new GameView(_pipe$1);
+    let _pipe$2 = enable_shuffle(_pipe$1);
+    return new GameView(_pipe$2);
   } else {
     return new ErrorView();
   }

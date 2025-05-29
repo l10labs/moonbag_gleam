@@ -77,17 +77,19 @@ pub fn box_view(content: String) {
         aspect-square
         border
         border-black
-        p-4
+        w-24
+        h-24
+        p-2
     ",
       ),
     ],
-    [html.span([attribute.class("text-4xl")], [html.text(content)])],
+    [html.span([attribute.class("text-m")], [html.text(content)])],
   )
 }
 
 pub fn game_element_view(title: String, content: String) {
-  html.div([attribute.class("flex flex-col items-center justify-center")], [
-    html.text(title),
-    box_view(content),
-  ])
+  html.div(
+    [attribute.class("flex flex-col items-center justify-center gap-1")],
+    [html.text(title), box_view(content)],
+  )
 }

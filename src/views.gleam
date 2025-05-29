@@ -51,54 +51,40 @@ pub fn home() -> Element(Msg) {
     [
       new_ui.main_title_view("MOON BAG"),
       new_ui.button_view(PlayerStartGame, "Start Game"),
-      new_ui.box_view("A"),
     ],
   )
 }
 
 pub fn game(game_data: Game) -> Element(Msg) {
-  let Game(player, level, _) = game_data
+  let Game(player:, level:, ..) = game_data
   let Points(points) = player.points
   let Points(milestone) = level.milestone
+  let health = player.health.value
+  let credits = player.credits.value
+  let last_orb = player.last_played_orb
+  let next_orb = player.starter_orbs.orbs |> ty.get_first_orb
 
-  page_wrapper([], [
-    ui.nav_bar_view(player),
-    html.main(
-      [
-        attribute.class(
-          "flex-grow flex flex-col items-center justify-center p-8 space-y-6",
-        ),
-      ],
-      [
-        new_ui.heading_view("LEVEL " <> int.to_string(level.current_level)),
-        html.div([attribute.class("flex flex-row space-x-8 mb-6")], [
-          html.div([attribute.class("flex flex-col items-center")], [
-            html.span(
-              [
-                attribute.class(
-                  "text-sm text-black mb-1 uppercase tracking-wider",
-                ),
-              ],
-              [html.text("Points")],
-            ),
-            ui.square_view(points |> int.to_string),
-          ]),
-          html.div([attribute.class("flex flex-col items-center")], [
-            html.span(
-              [
-                attribute.class(
-                  "text-sm text-black mb-1 uppercase tracking-wider",
-                ),
-              ],
-              [html.text("Milestone")],
-            ),
-            ui.square_view(milestone |> int.to_string),
-          ]),
-        ]),
-        new_ui.button_view(PlayerPullOrb, "Pull Orb"),
-      ],
-    ),
-  ])
+  html.section(
+    [
+      attribute.class(
+        "min-h-screen flex flex-col items-center justify-center space-y-4",
+      ),
+    ],
+    [
+      new_ui.heading_view("LEVEL " <> int.to_string(level.current_level)),
+      html.div([attribute.class("flex flex-row space-x-8 mb-6")], [
+        new_ui.game_element_view("Health", health |> int.to_string),
+        new_ui.game_element_view("Points", points |> int.to_string),
+        new_ui.game_element_view("Milestone", milestone |> int.to_string),
+        new_ui.game_element_view("Credits", "$" <> credits |> int.to_string),
+      ]),
+      html.div([attribute.class("flex flex-col space-x-8 mb-6")], [
+        new_ui.game_element_view("Orb Pulled", last_orb |> ty.orb_to_string),
+        html.text("Next Orb: " <> next_orb |> ty.orb_to_string),
+      ]),
+      new_ui.button_view(PlayerPullOrb, "Pull Orb"),
+    ],
+  )
 }
 
 pub fn win() -> Element(Msg) {

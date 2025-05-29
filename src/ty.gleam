@@ -1,3 +1,4 @@
+import gleam/int
 import gleam/list
 import gleam/option.{type Option}
 
@@ -6,6 +7,7 @@ pub type Player {
     health: Health,
     points: Points,
     credits: Credits,
+    last_played_orb: Orb,
     starter_orbs: OrbBag,
     purchased_orbs: OrbBag,
     curses: Curses,
@@ -72,6 +74,7 @@ pub fn init_player() -> Player {
     health: Health(5),
     points: Points(0),
     credits: Credits(0),
+    last_played_orb: EmptyOrb,
     // starter_orbs: init_orbs() |> list.shuffle |> OrbBag,
     starter_orbs: init_starter_orbs() |> OrbBag,
     purchased_orbs: [] |> OrbBag,
@@ -126,7 +129,15 @@ pub fn init_game() -> Game {
   Game(player: init_player(), market: init_market(), level: init_level())
 }
 
-fn get_first_orb(orb_list: List(Orb)) -> Orb {
+pub fn orb_to_string(orb: Orb) -> String {
+  case orb {
+    BombOrb(value) -> "Bomb " <> value |> int.to_string
+    EmptyOrb -> ""
+    PointOrb(value) -> "Point " <> value |> int.to_string
+  }
+}
+
+pub fn get_first_orb(orb_list: List(Orb)) -> Orb {
   case orb_list {
     [] -> EmptyOrb
     [first, ..] -> first
@@ -147,7 +158,12 @@ fn resolve_player_orb_pull(player: Player, orb: Orb) -> Player {
     EmptyOrb -> #(player.health.value, player.points.value)
   }
 
-  Player(..player, health: Health(health), points: Points(points))
+  Player(
+    ..player,
+    health: Health(health),
+    points: Points(points),
+    last_played_orb: orb,
+  )
 }
 
 fn update_player_starter_orbs(player: Player, new_orb_list: List(Orb)) -> Player {

@@ -71,7 +71,7 @@ fn health_bar_view(current_health: Health) -> Element(Msg) {
 }
 
 pub fn nav_bar_view(player: Player) -> Element(Msg) {
-  let Player(health, _, credits, _, _, _) = player
+  let Player(health:, credits:, ..) = player
 
   html.nav(
     [
