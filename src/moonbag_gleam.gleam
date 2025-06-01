@@ -1,12 +1,12 @@
 import lustre
 import lustre/element.{type Element}
 import msg.{
-  type Msg, PlayerBuyItem, PlayerNextRound, PlayerPullOrb, PlayerStartGame,
-  PlayerVisitMarket,
+  type Msg, PlayerBuyItem, PlayerNextRound, PlayerPull2Put1Back, PlayerPullOrb,
+  PlayerSelectOrb, PlayerStartGame, PlayerVisitMarket,
 }
 import ty.{
   type FrontendViews, ErrorView, GameView, HomeView, LoseView, MarketView,
-  WinView,
+  Pull2Put1BackView, WinView,
 }
 import views
 
@@ -35,6 +35,10 @@ fn update(model: Model, message: Msg) -> Model {
       game
       |> ty.pull_orb
       |> ty.update_view
+    GameView(game), PlayerPull2Put1Back ->
+      game |> ty.pull2put1back |> Pull2Put1BackView
+    Pull2Put1BackView(game), PlayerSelectOrb(orb) ->
+      game |> ty.handle_select_orb(orb) |> GameView
     WinView(game), PlayerVisitMarket ->
       game
       |> ty.reward_credits
@@ -59,5 +63,6 @@ fn view(model: Model) -> Element(Msg) {
     LoseView(_) -> views.lose()
     MarketView(game) -> game |> views.market
     ErrorView -> views.error()
+    Pull2Put1BackView(game) -> game |> views.pull_two_orbs_view
   }
 }

@@ -121,6 +121,7 @@ pub fn market_item_view(
     EmptyOrb -> #("Empty", "0")
     ty.DoubleFuturePointsOrb -> #("2x Future Points", "0")
     ty.PointsPerItemInBagOrb -> #("Points per item in bag", "0")
+    ty.Pull2Put1BackOrb -> #("Pull Two Put One Back", "0")
   }
 
   html.div(

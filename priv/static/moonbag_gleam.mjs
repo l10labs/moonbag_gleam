@@ -4284,6 +4284,8 @@ var DoubleFuturePointsOrb = class extends CustomType {
 };
 var PointsPerItemInBagOrb = class extends CustomType {
 };
+var Pull2Put1BackOrb = class extends CustomType {
+};
 var Curses = class extends CustomType {
   constructor(curses) {
     super();
@@ -4329,6 +4331,12 @@ var GameView = class extends CustomType {
     this[0] = x0;
   }
 };
+var Pull2Put1BackView = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
 var MarketView = class extends CustomType {
   constructor(x0) {
     super();
@@ -4354,6 +4362,7 @@ function build_orb(orb_type, times) {
 }
 function init_starter_orbs() {
   let _pipe = toList([
+    build_orb(new Pull2Put1BackOrb(), 1),
     build_orb(new PointsPerItemInBagOrb(), 1),
     build_orb(new PointOrb(5), 2),
     build_orb(new BombOrb(1), 3),
@@ -4410,7 +4419,7 @@ function init_market() {
   return new Market(_pipe$1);
 }
 function init_level() {
-  return new Level(1, 1, new Points(10));
+  return new Level(1, 1, new Points(100));
 }
 function init_game() {
   return new Game(init_player(), init_level(), init_market());
@@ -4432,8 +4441,10 @@ function orb_to_string(orb) {
     })() + "\u2B50";
   } else if (orb instanceof DoubleFuturePointsOrb) {
     return "2x\u2B50";
+  } else if (orb instanceof PointsPerItemInBagOrb) {
+    return "\u2B50/\u{1F392}";
   } else {
-    return "Points per item in bag";
+    return "\u{1F450}";
   }
 }
 function get_first_orb(orb_list) {
@@ -4506,7 +4517,7 @@ function resolve_player_orb_pull(player, orb) {
       _record2.purchased_orbs,
       _record2.curses
     );
-  } else {
+  } else if (orb instanceof PointsPerItemInBagOrb) {
     let _block$12;
     let _pipe2 = player.starter_orbs.orbs;
     _block$12 = length(_pipe2);
@@ -4521,6 +4532,8 @@ function resolve_player_orb_pull(player, orb) {
       _record2.purchased_orbs,
       _record2.curses
     );
+  } else {
+    _block = player;
   }
   let new_player = _block;
   let _block$1;
@@ -4561,6 +4574,186 @@ function pull_orb(game2) {
   let player = _block$2;
   let _record$1 = game2;
   return new Game(player, level, _record$1.market);
+}
+function update_orb_list(player, orb_list) {
+  let _record = player;
+  return new Player(
+    _record.health,
+    _record.points,
+    _record.credits,
+    _record.last_played_orb,
+    (() => {
+      let _pipe = orb_list;
+      return new OrbBag(_pipe);
+    })(),
+    _record.purchased_orbs,
+    _record.curses
+  );
+}
+function update_last_played_orb(player, played_orb) {
+  let _record = player;
+  return new Player(
+    _record.health,
+    _record.points,
+    _record.credits,
+    played_orb,
+    _record.starter_orbs,
+    _record.purchased_orbs,
+    _record.curses
+  );
+}
+function consume_action_orb(player, orb) {
+  if (orb instanceof EmptyOrb) {
+    return player;
+  } else if (orb instanceof BombOrb) {
+    let damage = orb[0];
+    let _record = player;
+    return new Player(
+      new Health(player.health.value - damage),
+      _record.points,
+      _record.credits,
+      _record.last_played_orb,
+      _record.starter_orbs,
+      _record.purchased_orbs,
+      _record.curses
+    );
+  } else if (orb instanceof PointOrb) {
+    let points = orb[0];
+    let _record = player;
+    return new Player(
+      _record.health,
+      new Points(player.points.value + points),
+      _record.credits,
+      _record.last_played_orb,
+      _record.starter_orbs,
+      _record.purchased_orbs,
+      _record.curses
+    );
+  } else if (orb instanceof DoubleFuturePointsOrb) {
+    let _block;
+    let _pipe = player.starter_orbs.orbs;
+    _block = map(
+      _pipe,
+      (b) => {
+        if (b instanceof PointOrb) {
+          let value = b[0];
+          return new PointOrb(2 * value);
+        } else {
+          let orb$1 = b;
+          return orb$1;
+        }
+      }
+    );
+    let new_bag = _block;
+    let _record = player;
+    return new Player(
+      _record.health,
+      _record.points,
+      _record.credits,
+      _record.last_played_orb,
+      new OrbBag(new_bag),
+      _record.purchased_orbs,
+      _record.curses
+    );
+  } else if (orb instanceof PointsPerItemInBagOrb) {
+    let _block;
+    let _pipe = player.starter_orbs.orbs;
+    _block = length(_pipe);
+    let points = _block;
+    let _record = player;
+    return new Player(
+      _record.health,
+      new Points(player.points.value + points),
+      _record.credits,
+      _record.last_played_orb,
+      _record.starter_orbs,
+      _record.purchased_orbs,
+      _record.curses
+    );
+  } else {
+    throw makeError(
+      "panic",
+      "ty",
+      266,
+      "consume_action_orb",
+      "`panic` expression evaluated.",
+      {}
+    );
+  }
+}
+function pull2put1back(game2) {
+  let player = game2.player;
+  let level = game2.level;
+  let market2 = game2.market;
+  let is_pull2put1back_orb_last_played = isEqual(
+    player.last_played_orb,
+    new Pull2Put1BackOrb()
+  );
+  if (!is_pull2put1back_orb_last_played) {
+    game2;
+  } else {
+    let orb_list = player.starter_orbs.orbs;
+    let _block;
+    let _pipe = orb_list;
+    _block = get_remaining_orb_list(_pipe);
+    let rem_1 = _block;
+    let _block$1;
+    let _pipe$1 = rem_1;
+    _block$1 = get_remaining_orb_list(_pipe$1);
+    let rem_2 = _block$1;
+    let _block$2;
+    let _pipe$2 = orb_list;
+    _block$2 = get_first_orb(_pipe$2);
+    let first_orb = _block$2;
+    let _block$3;
+    let _pipe$3 = rem_1;
+    _block$3 = get_first_orb(_pipe$3);
+    let second_orb = _block$3;
+    game2;
+  }
+  return game2;
+}
+function increment_round(level) {
+  let current_round = level.current_round + 1;
+  let _record = level;
+  return new Level(_record.current_level, current_round, _record.milestone);
+}
+function handle_select_orb(game2, orb) {
+  let orb_list = game2.player.starter_orbs.orbs;
+  let _block;
+  let $ = isEqual(
+    orb,
+    (() => {
+      let _pipe2 = orb_list;
+      return get_first_orb(_pipe2);
+    })()
+  );
+  if (!$) {
+    if (orb_list.atLeastLength(2)) {
+      let keep_orb = orb_list.head;
+      let rest = orb_list.tail.tail;
+      let _pipe2 = toList([keep_orb]);
+      _block = append(_pipe2, rest);
+    } else {
+      _block = toList([]);
+    }
+  } else {
+    let _pipe2 = orb_list;
+    _block = get_remaining_orb_list(_pipe2);
+  }
+  let new_list = _block;
+  let _block$1;
+  let _pipe = game2.player;
+  let _pipe$1 = consume_action_orb(_pipe, orb);
+  let _pipe$2 = update_orb_list(_pipe$1, new_list);
+  _block$1 = update_last_played_orb(_pipe$2, orb);
+  let player = _block$1;
+  let _block$2;
+  let _pipe$3 = game2.level;
+  _block$2 = increment_round(_pipe$3);
+  let level = _block$2;
+  let _record = game2;
+  return new Game(player, level, _record.market);
 }
 function update_view(game2) {
   let player = game2.player;
@@ -4719,6 +4912,14 @@ var PlayerStartGame = class extends CustomType {
 };
 var PlayerPullOrb = class extends CustomType {
 };
+var PlayerPull2Put1Back = class extends CustomType {
+};
+var PlayerSelectOrb = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
 var PlayerVisitMarket = class extends CustomType {
 };
 var PlayerNextRound = class extends CustomType {
@@ -4824,10 +5025,21 @@ function pull_orb_view(text4) {
   return div(
     toList([
       class$(
-        "\n        flex\n        items-center\n        justify-center\n        border\n        border-black\n        h-16\n        p-2\n        text-3xl\n    "
+        "\n        flex\n        items-center\n        justify-center\n        border\n        border-black\n        aspect-square\n        h-auto\n        w-24\n        p-2\n        text-3xl\n    "
       )
     ]),
     toList([text3(text4)])
+  );
+}
+function select_orb_view(text4, msg) {
+  return button(
+    toList([
+      on_click(msg),
+      class$(
+        "items-center justify-center hover:bg-black hover:text-white"
+      )
+    ]),
+    toList([pull_orb_view(text4)])
   );
 }
 
@@ -4955,8 +5167,10 @@ function market_item_view(item_with_key, message) {
     _block$1 = ["Empty", "0"];
   } else if ($1 instanceof DoubleFuturePointsOrb) {
     _block$1 = ["2x Future Points", "0"];
-  } else {
+  } else if ($1 instanceof PointsPerItemInBagOrb) {
     _block$1 = ["Points per item in bag", "0"];
+  } else {
+    _block$1 = ["Pull Two Put One Back", "0"];
   }
   let $ = _block$1;
   let name = $[0];
@@ -5036,6 +5250,54 @@ function home() {
     ])
   );
 }
+function pull_two_orbs_view(game2) {
+  let player = game2.player;
+  let level = game2.level;
+  let market$1 = game2.market;
+  let _block;
+  let $1 = player.starter_orbs.orbs;
+  if ($1.atLeastLength(2)) {
+    let orb12 = $1.head;
+    let orb22 = $1.tail.head;
+    _block = [orb12, orb22];
+  } else {
+    _block = [new EmptyOrb(), new EmptyOrb()];
+  }
+  let $ = _block;
+  let orb1 = $[0];
+  let orb2 = $[1];
+  return section(
+    toList([
+      class$(
+        "min-h-screen flex flex-col items-center justify-center space-y-4"
+      )
+    ]),
+    toList([
+      heading_view("Select One Orb"),
+      div(
+        toList([
+          class$("flex flex-row items-center justify-center gap-2")
+        ]),
+        toList([
+          select_orb_view(
+            (() => {
+              let _pipe = orb1;
+              return orb_to_string(_pipe);
+            })(),
+            new PlayerSelectOrb(orb1)
+          ),
+          select_orb_view(
+            (() => {
+              let _pipe = orb2;
+              return orb_to_string(_pipe);
+            })(),
+            new PlayerSelectOrb(orb2)
+          )
+        ])
+      )
+    ])
+  );
+}
 function game(game_data) {
   let player = game_data.player;
   let level = game_data.level;
@@ -5055,6 +5317,17 @@ function game(game_data) {
   let _pipe$1 = player.starter_orbs.orbs;
   _block$1 = length(_pipe$1);
   let items_in_bag = _block$1;
+  let _block$2;
+  let $2 = isEqual(player.last_played_orb, new Pull2Put1BackOrb());
+  if (!$2) {
+    _block$2 = button_view(new PlayerPullOrb(), "Pull Orb");
+  } else {
+    _block$2 = button_view(
+      new PlayerPull2Put1Back(),
+      "Pull Two Orbs"
+    );
+  }
+  let pull_orb_button = _block$2;
   return section(
     toList([
       class$(
@@ -5135,7 +5408,7 @@ function game(game_data) {
           )
         ])
       ),
-      button_view(new PlayerPullOrb(), "Pull Orb")
+      pull_orb_button
     ])
   );
 }
@@ -5256,6 +5529,17 @@ function update2(model, message) {
     let _pipe = game2;
     let _pipe$1 = pull_orb(_pipe);
     return update_view(_pipe$1);
+  } else if (model instanceof GameView && message instanceof PlayerPull2Put1Back) {
+    let game2 = model[0];
+    let _pipe = game2;
+    let _pipe$1 = pull2put1back(_pipe);
+    return new Pull2Put1BackView(_pipe$1);
+  } else if (model instanceof Pull2Put1BackView && message instanceof PlayerSelectOrb) {
+    let game2 = model[0];
+    let orb = message[0];
+    let _pipe = game2;
+    let _pipe$1 = handle_select_orb(_pipe, orb);
+    return new GameView(_pipe$1);
   } else if (model instanceof WinView && message instanceof PlayerVisitMarket) {
     let game2 = model[0];
     let _pipe = game2;
@@ -5290,8 +5574,12 @@ function view(model) {
     let game2 = model[0];
     let _pipe = game2;
     return market(_pipe);
-  } else {
+  } else if (model instanceof ErrorView) {
     return error();
+  } else {
+    let game2 = model[0];
+    let _pipe = game2;
+    return pull_two_orbs_view(_pipe);
   }
 }
 function main2() {

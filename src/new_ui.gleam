@@ -1,7 +1,7 @@
 import lustre/attribute
 import lustre/element/html
 import lustre/event
-import msg
+import msg.{type Msg}
 
 // new_ui
 
@@ -102,12 +102,26 @@ pub fn pull_orb_view(text: String) {
         justify-center
         border
         border-black
-        h-16
+        aspect-square
+        h-auto
+        w-24
         p-2
         text-3xl
     ",
       ),
     ],
     [html.text(text)],
+  )
+}
+
+pub fn select_orb_view(text: String, msg: Msg) {
+  html.button(
+    [
+      event.on_click(msg),
+      attribute.class(
+        "items-center justify-center hover:bg-black hover:text-white",
+      ),
+    ],
+    [pull_orb_view(text)],
   )
 }

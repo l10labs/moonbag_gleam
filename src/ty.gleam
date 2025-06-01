@@ -36,6 +36,7 @@ pub type Orb {
   PointOrb(Int)
   DoubleFuturePointsOrb
   PointsPerItemInBagOrb
+  Pull2Put1BackOrb
 }
 
 pub type Curses {
@@ -65,6 +66,7 @@ pub type Game {
 pub type FrontendViews {
   HomeView
   GameView(Game)
+  Pull2Put1BackView(Game)
   MarketView(Game)
   WinView(Game)
   LoseView(Game)
@@ -91,6 +93,7 @@ fn init_starter_orbs() -> List(Orb) {
     // build_orb(PointOrb(3), times: 2),
     // build_orb(BombOrb(1), times: 3),
     // build_orb(BombOrb(2), times: 2),
+    build_orb(Pull2Put1BackOrb, 1),
     build_orb(PointsPerItemInBagOrb, 1),
     build_orb(PointOrb(5), 2),
     build_orb(BombOrb(1), 3),
@@ -130,7 +133,7 @@ fn init_market() -> Market {
 }
 
 fn init_level() -> Level {
-  Level(current_level: 1, current_round: 1, milestone: Points(10))
+  Level(current_level: 1, current_round: 1, milestone: Points(100))
 }
 
 pub fn init_game() -> Game {
@@ -143,7 +146,8 @@ pub fn orb_to_string(orb: Orb) -> String {
     EmptyOrb -> ""
     PointOrb(value) -> value |> int.to_string <> "⭐"
     DoubleFuturePointsOrb -> "2x⭐"
-    PointsPerItemInBagOrb -> "Points per item in bag"
+    PointsPerItemInBagOrb -> "⭐/🎒"
+    Pull2Put1BackOrb -> "👐"
   }
 }
 
@@ -154,7 +158,7 @@ pub fn get_first_orb(orb_list: List(Orb)) -> Orb {
   }
 }
 
-fn get_remaining_orb_list(orb_list: List(Orb)) -> List(Orb) {
+pub fn get_remaining_orb_list(orb_list: List(Orb)) -> List(Orb) {
   case orb_list {
     [] -> []
     [_, ..rest] -> rest
@@ -183,6 +187,7 @@ fn resolve_player_orb_pull(player: Player, orb: Orb) -> Player {
       let points = player.starter_orbs.orbs |> list.length
       Player(..player, points: Points(player.points.value + points))
     }
+    Pull2Put1BackOrb -> player
   }
 
   let new_orb_list = new_player.starter_orbs.orbs |> get_remaining_orb_list
@@ -192,10 +197,6 @@ fn resolve_player_orb_pull(player: Player, orb: Orb) -> Player {
     last_played_orb: orb,
     starter_orbs: new_orb_list |> OrbBag,
   )
-}
-
-fn update_player_starter_orbs(player: Player, new_orb_list: List(Orb)) -> Player {
-  Player(..player, starter_orbs: new_orb_list |> OrbBag)
 }
 
 pub fn pull_orb(game: Game) -> Game {
@@ -210,6 +211,83 @@ pub fn pull_orb(game: Game) -> Game {
   // |> update_player_starter_orbs(new_starter_orbs_list)
 
   Game(..game, player:, level:)
+}
+
+pub fn handle_select_orb(game: Game, orb: Orb) -> Game {
+  let orb_list = game.player.starter_orbs.orbs
+  let new_list = case orb == orb_list |> get_first_orb {
+    False ->
+      case orb_list {
+        [keep_orb, _used_orb, ..rest] -> [keep_orb] |> list.append(rest)
+        _ -> []
+      }
+    True -> orb_list |> get_remaining_orb_list
+  }
+  let player =
+    game.player
+    |> consume_action_orb(orb)
+    |> update_orb_list(new_list)
+    |> update_last_played_orb(orb)
+  let level = game.level |> increment_round
+
+  Game(..game, player:, level:)
+}
+
+fn update_orb_list(player: Player, orb_list: List(Orb)) -> Player {
+  Player(..player, starter_orbs: orb_list |> OrbBag)
+}
+
+fn update_last_played_orb(player: Player, played_orb: Orb) -> Player {
+  Player(..player, last_played_orb: played_orb)
+}
+
+fn consume_action_orb(player: Player, orb: Orb) -> Player {
+  case orb {
+    EmptyOrb -> player
+    BombOrb(damage) ->
+      Player(..player, health: Health(player.health.value - damage))
+    PointOrb(points) ->
+      Player(..player, points: Points(player.points.value + points))
+    DoubleFuturePointsOrb -> {
+      let new_bag =
+        player.starter_orbs.orbs
+        |> list.map(fn(b) {
+          case b {
+            PointOrb(value) -> PointOrb(2 * value)
+            orb -> orb
+          }
+        })
+      Player(..player, starter_orbs: OrbBag(new_bag))
+    }
+    PointsPerItemInBagOrb -> {
+      let points = player.starter_orbs.orbs |> list.length
+      Player(..player, points: Points(player.points.value + points))
+    }
+    Pull2Put1BackOrb -> panic
+  }
+}
+
+pub fn pull2put1back(game: Game) -> Game {
+  let Game(player:, level:, market:) = game
+  let is_pull2put1back_orb_last_played =
+    player.last_played_orb == Pull2Put1BackOrb
+  case is_pull2put1back_orb_last_played {
+    False -> game
+    True -> {
+      let orb_list = player.starter_orbs.orbs
+      let rem_1 = orb_list |> get_remaining_orb_list
+      let rem_2 = rem_1 |> get_remaining_orb_list
+      let first_orb = orb_list |> get_first_orb
+      let second_orb = rem_1 |> get_first_orb
+      game
+    }
+  }
+  game
+}
+
+fn increment_round(level: Level) -> Level {
+  let current_round = level.current_round + 1
+  Level(..level, current_round:)
 }
 
 pub fn update_view(game: Game) -> FrontendViews {

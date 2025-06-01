@@ -55,6 +55,38 @@ pub fn home() -> Element(Msg) {
   )
 }
 
+pub fn pull_two_orbs_view(game: Game) -> Element(Msg) {
+  let Game(player:, level:, market:) = game
+  let #(orb1, orb2) = case player.starter_orbs.orbs {
+    [orb1, orb2, ..] -> #(orb1, orb2)
+    _ -> #(ty.EmptyOrb, ty.EmptyOrb)
+  }
+
+  html.section(
+    [
+      attribute.class(
+        "min-h-screen flex flex-col items-center justify-center space-y-4",
+      ),
+    ],
+    [
+      new_ui.heading_view("Select One Orb"),
+      html.div(
+        [attribute.class("flex flex-row items-center justify-center gap-2")],
+        [
+          new_ui.select_orb_view(
+            orb1 |> ty.orb_to_string,
+            msg.PlayerSelectOrb(orb1),
+          ),
+          new_ui.select_orb_view(
+            orb2 |> ty.orb_to_string,
+            msg.PlayerSelectOrb(orb2),
+          ),
+        ],
+      ),
+    ],
+  )
+}
+
 pub fn game(game_data: Game) -> Element(Msg) {
   let Game(player:, level:, ..) = game_data
   let Points(points) = player.points
@@ -65,6 +97,11 @@ pub fn game(game_data: Game) -> Element(Msg) {
   let last_orb = player.last_played_orb
   let next_orb = player.starter_orbs.orbs |> ty.get_first_orb
   let items_in_bag = player.starter_orbs.orbs |> list.length
+
+  let pull_orb_button = case player.last_played_orb == ty.Pull2Put1BackOrb {
+    False -> new_ui.button_view(PlayerPullOrb, "Pull Orb")
+    True -> new_ui.button_view(msg.PlayerPull2Put1Back, "Pull Two Orbs")
+  }
 
   html.section(
     [
@@ -95,7 +132,7 @@ pub fn game(game_data: Game) -> Element(Msg) {
           html.text("Next Orb: " <> next_orb |> ty.orb_to_string),
         ],
       ),
-      new_ui.button_view(PlayerPullOrb, "Pull Orb"),
+      pull_orb_button,
     ],
   )
 }
